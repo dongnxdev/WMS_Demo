@@ -11,7 +11,9 @@ namespace WMS_Demo.Models
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        public string? Reason { get; set; }
+        public int CustomerId { get; set; }
+        [ForeignKey(nameof(CustomerId))]
+        public Customer? Customer { get; set; } // Navigation Property
 
         [Required]
         public string UserId { get; set; } = string.Empty;
