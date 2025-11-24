@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WMS_Demo.Models;
 using WMS_Demo.ViewModels;
 using WMS_Demo.Data;
@@ -53,7 +54,7 @@ namespace WMS_Demo.Controllers
                         SupplierId = model.BusinessPartnerId ?? 0, // Xử lý trường hợp `BusinessPartnerId` có thể là null.
                         Notes = model.Remarks,
                         // TODO: Cần triển khai việc theo dõi người dùng tạo phiếu.
-                        // CreatedBy = User.Identity.Name 
+                        UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                        
                     };
                     _context.InboundReceipts.Add(receipt);
@@ -136,7 +137,7 @@ namespace WMS_Demo.Controllers
                     {
                         CreatedDate = model.Date,
                         Notes = model.Remarks,
-                        // CreatedBy = User.Identity.Name
+                        UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                     };
                     _context.OutboundReceipts.Add(receipt);
                     _context.SaveChanges();
