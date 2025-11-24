@@ -12,7 +12,7 @@ using WMS_Demo.Data;
 namespace WMS_Demo.Migrations
 {
     [DbContext(typeof(WmsDbContext))]
-    [Migration("20251120064730_InitialCreate")]
+    [Migration("20251123025139_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace WMS_Demo.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "8.0.4")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -235,6 +235,32 @@ namespace WMS_Demo.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("WMS_Demo.Models.Customer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("PhoneNumber")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Customers");
+                });
+
             modelBuilder.Entity("WMS_Demo.Models.InboundReceipt", b =>
                 {
                     b.Property<int>("Id")
@@ -404,10 +430,10 @@ namespace WMS_Demo.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Reason")
+                    b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
@@ -415,6 +441,8 @@ namespace WMS_Demo.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("UserId");
 
@@ -588,6 +616,12 @@ namespace WMS_Demo.Migrations
 
             modelBuilder.Entity("WMS_Demo.Models.OutboundReceipt", b =>
                 {
+                    b.HasOne("WMS_Demo.Models.Customer", "Customer")
+                        .WithMany()
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("WMS_Demo.Models.ApplicationUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -595,6 +629,8 @@ namespace WMS_Demo.Migrations
                         .IsRequired();
 
                     b.Navigation("CreatedBy");
+
+                    b.Navigation("Customer");
                 });
 
             modelBuilder.Entity("WMS_Demo.Models.OutboundReceiptDetail", b =>

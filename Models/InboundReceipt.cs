@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 /// <summary>
-/// Summary description for Class1
+/// Đại diện cho một phiếu nhập kho.
 /// </summary>
 namespace WMS_Demo.Models
 {
@@ -11,11 +11,11 @@ namespace WMS_Demo.Models
         [Key]
         public int Id { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow; // Mặc định lấy giờ UTC, hiển thị thì convert sau
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow; // Ngày tạo phiếu.
 
         public int SupplierId { get; set; }
         [ForeignKey(nameof(SupplierId))]
-        public Supplier? Supplier { get; set; } // Navigation Property
+        public Supplier? Supplier { get; set; } // Tham chiếu đến nhà cung cấp.
 
         [Required]
         public string UserId { get; set; } = string.Empty;
@@ -24,7 +24,7 @@ namespace WMS_Demo.Models
 
         public string? Notes { get; set; }
 
-        // Quan hệ 1-N: Một phiếu có nhiều dòng chi tiết
+        // Danh sách các chi tiết của phiếu nhập.
         public ICollection<InboundReceiptDetail> Details { get; set; } = new List<InboundReceiptDetail>();
     }
 }

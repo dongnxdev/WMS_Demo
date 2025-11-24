@@ -1,0 +1,12 @@
+
+--- mirgation database
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+--- Scaffolding Controller CRUD
+dotnet tool install -g dotnet-aspnet-codegenerator
+dotnet tool update -g dotnet-aspnet-codegenerator
+dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
+
+dotnet aspnet-codegenerator controller -name <Tên_Controller> -m <Tên_Model> -dc <Tên_DbContext> --relativeFolderPath <Thư_mục_chứa_Controller> --useDefaultLayout --referenceScriptLibraries
+
+dotnet aspnet-codegenerator controller --controllerName SuppliersController --model Supplier --dataContext WmsDbContext --useDefaultLayout --referenceScriptLibraries --relativeFolderPath Controllers

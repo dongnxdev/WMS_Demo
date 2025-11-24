@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 /// <summary>
-/// Summary description for Class1
+/// Đại diện cho thông tin một khách hàng.
 /// </summary>
 namespace WMS_Demo.Models
 {

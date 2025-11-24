@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 /// <summary>
-/// Summary description for Class1
+/// Đại diện cho chi tiết của một phiếu nhập kho.
 /// </summary>
 namespace WMS_Demo.Models
 {
@@ -13,7 +13,7 @@ namespace WMS_Demo.Models
 
         public int InboundReceiptId { get; set; }
         [ForeignKey(nameof(InboundReceiptId))]
-        public InboundReceipt? InboundReceipt { get; set; } // Để EF Core hiểu quan hệ cha-con
+        public InboundReceipt? InboundReceipt { get; set; } // Tham chiếu đến phiếu nhập kho chính.
 
         public int ItemId { get; set; }
         [ForeignKey(nameof(ItemId))]

@@ -6,33 +6,31 @@ using WMS_Demo.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1. Lấy chuỗi kết nối từ appsettings.json
+// Lấy chuỗi kết nối cơ sở dữ liệu từ cấu hình.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
                        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// 2. Đăng ký DbContext (Kết nối SQL Server)
+// Đăng ký WmsDbContext với SQL Server.
 builder.Services.AddDbContext<WmsDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 3. Đăng ký Identity (Quản lý User/Role)
-// Quan trọng: Dùng AddIdentityApiEndpoints hoặc cấu hình thủ công. 
-// nhận bảng Users/Roles trong DB.
+// Cấu hình hệ thống Identity cho việc quản lý người dùng và vai trò.
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<WmsDbContext>()
     .AddDefaultTokenProviders();
 
-// 4. Đăng ký Controllers (Để viết API)
-builder.Services.AddControllers();
+// Đăng ký các dịch vụ cho Controllers và Views.
+builder.Services.AddControllersWithViews();
 
-// 5. Đăng ký Swagger (Để test API)
+// Đăng ký Swagger/OpenAPI để tạo tài liệu và kiểm thử API.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// --- PHẦN MIDDLEWARE (Xử lý Request) ---
+// Cấu hình pipeline xử lý HTTP request.
 
-// Cấu hình Swagger UI (Chỉ hiện khi chạy ở môi trường Dev)
+// Cấu hình Swagger UI chỉ trong môi trường phát triển.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -41,10 +39,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Kích hoạt Authentication (Xác thực) & Authorization (Phân quyền)
+// Kích hoạt middleware xác thực và phân quyền.
 app.UseAuthentication(); 
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

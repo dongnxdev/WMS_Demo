@@ -3,10 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WMS_Demo.Models
 {
+    /// <summary>
+    /// Ghi lại lịch sử thay đổi tồn kho của vật tư.
+    /// </summary>
     public class InventoryLog
     {
         [Key]
-        public long Id { get; set; } // Dùng long chuẩn bài rồi
+        public long Id { get; set; } // ID của log.
 
         public int ItemId { get; set; }
         [ForeignKey(nameof(ItemId))]
@@ -15,12 +18,12 @@ namespace WMS_Demo.Models
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
         [Required, MaxLength(50)]
-        public string ActionType { get; set; } = string.Empty; // "INBOUND", "OUTBOUND", "ADJUSTMENT"
+        public string ActionType { get; set; } = string.Empty; // Loại hành động: "INBOUND", "OUTBOUND", "ADJUSTMENT".
 
-        public int ReferenceId { get; set; } // ID phiếu nhập/xuất
+        public int ReferenceId { get; set; } // ID tham chiếu đến phiếu nhập/xuất.
 
-        public double ChangeQuantity { get; set; } // + hoặc -
+        public double ChangeQuantity { get; set; } // Số lượng thay đổi (dương hoặc âm).
 
-        public double NewStock { get; set; } // Tồn kho SAU khi thay đổi
+        public double NewStock { get; set; } // Số lượng tồn kho mới sau khi thay đổi.
     }
 }

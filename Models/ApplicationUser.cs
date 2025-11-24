@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 /// <summary>
-/// Summary description for Class1
+/// Đại diện cho một người dùng trong hệ thống, mở rộng từ IdentityUser.
 /// </summary>
 namespace WMS_Demo.Models
 {
@@ -13,8 +13,8 @@ namespace WMS_Demo.Models
         public string FullName { get; set; } = string.Empty;
 
         [MaxLength(20)]
-        public string? StaffCode { get; set; } // Mã nhân viên, có thể null nếu là Admin hệ thống
+        public string? StaffCode { get; set; } // Mã nhân viên, có thể rỗng.
 
-        public bool IsActive { get; set; } = true; // Mặc định là đang làm, chưa bị đuổi
+        public bool IsActive { get; set; } = true; // Trạng thái hoạt động của tài khoản.
     }
 }
