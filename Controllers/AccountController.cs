@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WMS_Demo.Models; 
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_Demo.Controllers
 {
