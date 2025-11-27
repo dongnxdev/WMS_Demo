@@ -35,6 +35,20 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        // Thêm await vào đây vì hàm Initialize giờ là async
+        await WMS_Demo.Data.DbInitializer.Initialize(services);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Lỗi sấp mặt khi seed data. Check lại đi đại ca.");
+    }
+}
 }
 
 app.UseHttpsRedirection();
