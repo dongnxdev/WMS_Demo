@@ -52,7 +52,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 // Kích hoạt middleware xác thực và phân quyền.
 app.UseAuthentication(); 
 app.UseAuthorization();

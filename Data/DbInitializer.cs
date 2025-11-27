@@ -95,11 +95,12 @@ namespace WMS_Demo.Data
             context.Locations.AddRange(locations);
 
             // 4. Items (Lưu ý: Để tồn kho = 0 ban đầu, ta sẽ tăng nó qua phiếu Nhập kho để có Log chuẩn)
+            var rand = new Random();
             var itemFaker = new Faker<Item>()
                 .RuleFor(i => i.Name, f => f.Commerce.ProductName())
                 .RuleFor(i => i.Code, f => f.Commerce.Ean8())
                 .RuleFor(i => i.Unit, f => f.PickRandom("Cái", "Hộp", "Kg"))
-                .RuleFor(i => i.SafetyStock, f => f.Random.Double(10, 20))
+                .RuleFor(i => i.SafetyStock, f => rand.Next(1, 100))
                 .RuleFor(i => i.CurrentStock, 0); // Bắt đầu bằng 0
             var items = itemFaker.Generate(20);
             context.Items.AddRange(items);
@@ -113,7 +114,7 @@ namespace WMS_Demo.Data
             var customerIds = customers.Select(c => c.Id).ToList();
             var locationIds = locations.Select(l => l.Id).ToList();
             var itemEntities = context.Items.ToList(); // Lấy lại items từ DB để track change
-            var rand = new Random();
+           
 
             // 1. Tạo dữ liệu NHẬP KHO (Inbound) -> Tăng tồn kho -> Ghi Log
             for (int i = 0; i < 10; i++) // Tạo 10 phiếu nhập

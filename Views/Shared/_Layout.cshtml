@@ -1,47 +1,124 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - WMS_Demo</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] - WMS System</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/WMS_Demo.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">WMS_Demo</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+
+    <div class="d-flex" id="wrapper">
+        <div id="sidebar-wrapper">
+            <div class="sidebar-heading text-center text-uppercase">
+                <i class="fa-solid fa-warehouse me-2"></i>WMS PRO
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+            <div class="list-group list-group-flush mt-3">
+                <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-gauge-high me-3"></i>Dashboard
+                </a>
+                
+                <div class="small text-uppercase text-muted px-4 pt-4 pb-2">Quản lý Kho</div>
+                
+                <a asp-controller="Items" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-boxes-stacked me-3"></i>Vật tư / Hàng hóa
+                </a>
+                <a asp-controller="Locations" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-map-location-dot me-3"></i>Vị trí kho
+                </a>
+
+                <div class="small text-uppercase text-muted px-4 pt-4 pb-2">Đối tác</div>
+
+                <a asp-controller="Suppliers" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-truck-field me-3"></i>Nhà cung cấp
+                </a>
+                <a asp-controller="Customers" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-users me-3"></i>Khách hàng
+                </a>
+
+                 <div class="small text-uppercase text-muted px-4 pt-4 pb-2">Hệ thống</div>
+                 
+                 <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                    <i class="fa-solid fa-chart-pie me-3"></i>Báo cáo
+                </a>
+            </div>
+        </div>
+
+        <div id="page-content-wrapper">
+            <nav class="navbar navbar-expand-lg navbar-custom px-4 border-bottom d-flex align-items-center">
+    
+    <div class="d-flex align-items-center">
+        <button class="btn btn-outline-dark border-0 me-2" id="sidebarToggle">
+            <i class="fa-solid fa-bars fa-lg"></i>
+        </button>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - WMS_Demo - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <div class="d-none d-md-flex flex-grow-1 mx-4" style="max-width: 600px;">
+        <form class="input-group w-100" asp-controller="Home" asp-action="Index" method="get"> <input type="text" name="searchString" class="form-control border-end-0 bg-light" placeholder="Nhập từ khóa tìm kiếm vật tư, đối tác..." aria-label="Search">
+            <button class="btn border-start-0 bg-light" type="submit">
+                <i class="fa-solid fa-search text-muted"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="d-flex align-items-center gap-3 ms-auto">
+        
+        <a href="#" class="d-md-none text-dark">
+            <i class="fa-solid fa-search fa-lg"></i>
+        </a>
+
+        <div class="position-relative cursor-pointer mx-2">
+            <i class="fa-regular fa-bell fa-lg text-secondary"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                9+
+            </span>
         </div>
-    </footer>
+
+        <div class="dropdown">
+            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
+                <div class="user-avatar">
+                    @{
+                        var userName = User.Identity?.Name ?? "Admin";
+                        var initial = !string.IsNullOrEmpty(userName) ? userName.Substring(0, 1).ToUpper() : "A";
+                    }
+                    @initial
+                </div>
+                <div class="d-none d-sm-block lh-1 text-start">
+                    <div class="fw-bold small">@(User.Identity?.Name ?? "Nguyễn Xuân Đông")</div>
+                    <div class="text-muted small" style="font-size: 0.75rem;">Giám đốc</div>
+                </div>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="dropdownUser1">
+                <li><h6 class="dropdown-header text-uppercase small text-muted">Tài khoản</h6></li>
+                <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="fa-regular fa-id-card me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
+                <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-sliders me-2 text-warning"></i>Cấu hình hệ thống</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                        <button type="submit" class="dropdown-item text-danger w-100 py-2 fw-bold"><i class="fa-solid fa-power-off me-2"></i>Đăng xuất</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+            <div class="container-fluid py-4 px-4">
+                @RenderBody()
+            </div>
+            
+            <footer class="sticky-footer">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; WMS Demo - Made by <strong>DongNX</strong> 2025</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

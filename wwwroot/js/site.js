@@ -1,4 +1,9 @@
-﻿// Please see documentation at https://learn.microsoft.com/aspnet/core/client-side/bundling-and-minification
-// for details on configuring this project to bundle and minify static web assets.
+﻿// wwwroot/js/site.js
 
-// Write your JavaScript code.
+$(document).ready(function () {
+    // Xử lý sự kiện click vào nút toggle sidebar
+    $("#sidebarToggle").on("click", function (e) {
+        e.preventDefault(); // Chặn hành vi mặc định
+        $("body").toggleClass("sb-sidenav-toggled");
+    });
+});
