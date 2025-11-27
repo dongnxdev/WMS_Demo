@@ -10,7 +10,7 @@ namespace WMS_Demo.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
 
-        // Khởi tạo các dịch vụ được inject.
+        // Khởi tạo và tiêm các dịch vụ phụ thuộc.
         public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
         {
             _userManager = userManager;

@@ -26,7 +26,7 @@ namespace WMS_Demo.Controllers
         {
             // Chuẩn bị dữ liệu cho các dropdown list trên giao diện.
             ViewBag.Suppliers = new SelectList(_context.Suppliers, "Id", "Name");
-            ViewBag.Items = _context.Items.ToList(); // Lấy danh sách vật tư để xử lý phía client.
+            ViewBag.Items = _context.Items.ToList(); // Lấy danh sách vật tư để phục vụ xử lý tại client.
             ViewBag.Locations = _context.Locations.ToList();
             return View();
         }
@@ -51,9 +51,9 @@ namespace WMS_Demo.Controllers
                     var receipt = new InboundReceipt
                     {
                         CreatedDate = model.Date,
-                        SupplierId = model.BusinessPartnerId ?? 0, // Xử lý trường hợp `BusinessPartnerId` có thể là null.
+                        SupplierId = model.BusinessPartnerId ?? 0, // Xử lý trường hợp mã đối tác kinh doanh không xác định.
                         Notes = model.Remarks,
-                        // TODO: Cần triển khai việc theo dõi người dùng tạo phiếu.
+                        // TODO: Cần bổ sung chức năng ghi nhận người dùng tạo phiếu.
                         UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
                        
                     };

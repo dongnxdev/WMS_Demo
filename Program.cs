@@ -40,13 +40,13 @@ if (app.Environment.IsDevelopment())
     var services = scope.ServiceProvider;
     try
     {
-        // Thêm await vào đây vì hàm Initialize giờ là async
+        // Thực hiện khởi tạo dữ liệu mẫu bất đồng bộ.
         await WMS_Demo.Data.DbInitializer.Initialize(services);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi sấp mặt khi seed data. Check lại đi đại ca.");
+        logger.LogError(ex, "Đã xảy ra lỗi trong quá trình khởi tạo dữ liệu mẫu.");
     }
 }
 }
