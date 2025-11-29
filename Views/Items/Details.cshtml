@@ -1,48 +1,39 @@
 @model WMS_Demo.Models.Item
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Chi tiết vật tư";
 }
 
-<h1>Details</h1>
+<div class="container py-4">
+    <div class="card card-industrial w-75 mx-auto">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0"><i class="fa-solid fa-circle-info me-2"></i>Thông tin chi tiết</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted">Mã SKU (Code)</dt>
+                <dd class="col-sm-8 fw-bold fs-5">@Model.Code</dd>
 
-<div>
-    <h4>Item</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Code)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Code)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Unit)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Unit)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SafetyStock)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SafetyStock)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CurrentStock)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CurrentStock)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+                <dt class="col-sm-4 text-muted">Tên hàng hóa</dt>
+                <dd class="col-sm-8">@Model.Name</dd>
+
+                <dt class="col-sm-4 text-muted">Đơn vị tính</dt>
+                <dd class="col-sm-8"><span class="badge bg-secondary">@Model.Unit</span></dd>
+
+                <hr class="my-3"/>
+
+                <dt class="col-sm-4 text-muted">Tồn kho hiện tại</dt>
+                <dd class="col-sm-8 fw-bold @(Model.CurrentStock < Model.SafetyStock ? "text-danger" : "text-success")">
+                    @Model.CurrentStock
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Mức an toàn (Min)</dt>
+                <dd class="col-sm-8">@Model.SafetyStock</dd>
+            </dl>
+        </div>
+        <div class="card-footer bg-white text-end">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-industrial">Chỉnh sửa</a>
+            <a asp-action="Index" class="btn btn-secondary btn-industrial">Quay lại danh sách</a>
+        </div>
+    </div>
 </div>

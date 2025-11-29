@@ -1,51 +1,24 @@
 @model WMS_Demo.Models.Item
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Xóa vật tư";
 }
 
-<h1>Delete</h1>
+<div class="container py-5 text-center">
+    <div class="alert alert-danger d-inline-block card-industrial" role="alert">
+        <h1 class="display-1"><i class="fa-solid fa-triangle-exclamation"></i></h1>
+        <h3 class="fw-bold">BẠN CÓ CHẮC CHẮN MUỐN XÓA VẬT TƯ</h3>
+        <p class="lead"><strong>@Model.Name (@Model.Code)</strong></p>
+        <p class="mb-0 small">...</p>
+    </div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>Item</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Name)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Name)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Code)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Code)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Unit)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Unit)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.SafetyStock)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.SafetyStock)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.CurrentStock)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.CurrentStock)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="Id" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+    <div class="mt-4">
+        <form asp-action="Delete">
+            <input type="hidden" asp-for="Id" />
+            <a asp-action="Index" class="btn btn-secondary btn-lg btn-industrial me-3">No</a>
+            <button type="submit" class="btn btn-danger btn-lg btn-industrial">
+                <i class="fa-solid fa-trash-can me-2"></i> Yes
+            </button>
+        </form>
+    </div>
 </div>

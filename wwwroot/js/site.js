@@ -7,3 +7,4 @@ $(document).ready(function () {
         $("body").toggleClass("sb-sidenav-toggled");
     });
 });
+

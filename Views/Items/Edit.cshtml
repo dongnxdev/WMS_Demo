@@ -1,52 +1,59 @@
 @model WMS_Demo.Models.Item
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Cập nhật vật tư";
 }
 
-<h1>Edit</h1>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-industrial">
+            <div class="card-header bg-warning text-dark border-bottom-0">
+                <h4 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Cập nhật thông tin: @Model.Code</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
 
-<h4>Item</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-bold">Mã SKU</label>
+                            <input asp-for="Code" class="form-control rounded-0 bg-light" readonly />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Unit" class="form-label fw-bold">Đơn vị tính</label>
+                            <input asp-for="Unit" class="form-control rounded-0" />
+                            <span asp-validation-for="Unit" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="Name" class="form-label fw-bold">Tên vật tư</label>
+                            <input asp-for="Name" class="form-control rounded-0" />
+                            <span asp-validation-for="Name" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="SafetyStock" class="form-label fw-bold">Mức an toàn</label>
+                            <input asp-for="SafetyStock" class="form-control rounded-0" />
+                            <span asp-validation-for="SafetyStock" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-label fw-bold">Hiện đang có</div>
+                            <span class=" form-control rounded-0 @(Model.CurrentStock < @Model.SafetyStock ? "text-danger" :"text-success")">@Model.CurrentStock</span>                   
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <a asp-action="Index" class="btn btn-secondary btn-industrial me-2">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-warning btn-industrial fw-bold">Cập nhật ngay</button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="Code" class="control-label"></label>
-                <input asp-for="Code" class="form-control" />
-                <span asp-validation-for="Code" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Unit" class="control-label"></label>
-                <input asp-for="Unit" class="form-control" />
-                <span asp-validation-for="Unit" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SafetyStock" class="control-label"></label>
-                <input asp-for="SafetyStock" class="form-control" />
-                <span asp-validation-for="SafetyStock" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CurrentStock" class="control-label"></label>
-                <input asp-for="CurrentStock" class="form-control" />
-                <span asp-validation-for="CurrentStock" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {
