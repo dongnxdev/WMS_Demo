@@ -135,19 +135,23 @@ namespace WMS_Demo.Data
                 {
                     var item = itemEntities[rand.Next(itemEntities.Count)];
                     var qty = rand.Next(1, 100); // Nhập số lượng lớn
-                    
+                    var costPerUnit = rand.Next(10, 500); // Giá vốn nhập
                     var detail = new InboundReceiptDetail
                     {
                         InboundReceiptId = inbound.Id,
                         ItemId = item.Id,
                         LocationId = locationIds[rand.Next(locationIds.Count)],
-                        Quantity = qty
+                        Quantity = qty,
+                        UnitPrice=costPerUnit
                     };
                     context.InboundReceiptDetails.Add(detail);
 
                     // Cập nhật tồn kho
+                    item.CurrentCost= (item.CurrentCost* (item.CurrentStock)+(qty*costPerUnit));
+                    item.CurrentCost/= (item.CurrentStock + qty);
+                    
                     item.CurrentStock += qty;
-
+                    
                     // GHI LOG INBOUND
                     context.InventoryLogs.Add(new InventoryLog
                     {
@@ -156,7 +160,9 @@ namespace WMS_Demo.Data
                         ChangeQuantity = qty,
                         NewStock = item.CurrentStock,
                         ReferenceId = inbound.Id,
-                        Timestamp = inbound.CreatedDate
+                        Timestamp = inbound.CreatedDate,
+                        TransactionPrice= costPerUnit,
+                        MovingAverageCost = item.CurrentCost
                     });
                 }
             }
@@ -184,13 +190,16 @@ namespace WMS_Demo.Data
 
                     var item = availableItems[rand.Next(availableItems.Count)];
                     var qty = rand.Next(1, (int)item.CurrentStock / 2); // Xuất ít thôi, ko âm kho
-
+                    var salePrice = rand.Next(10, 500);
+                    var costPrice = item.CurrentCost;
                     var detail = new OutboundReceiptDetail
                     {
                         OutboundReceiptId = outbound.Id,
                         ItemId = item.Id,
                         LocationId = locationIds[rand.Next(locationIds.Count)], // Lấy đại từ vị trí nào đó
-                        Quantity = qty
+                        Quantity = qty,
+                        SalesPrice=salePrice,
+                        CostPrice=costPrice
                     };
                     context.OutboundReceiptDetails.Add(detail);
 
@@ -205,7 +214,9 @@ namespace WMS_Demo.Data
                         ChangeQuantity = -qty, // Số âm
                         NewStock = item.CurrentStock,
                         ReferenceId = outbound.Id,
-                        Timestamp = outbound.CreatedDate
+                        Timestamp = outbound.CreatedDate,
+                        TransactionPrice= salePrice,
+                        MovingAverageCost = item.CurrentCost
                     });
                 }
             }

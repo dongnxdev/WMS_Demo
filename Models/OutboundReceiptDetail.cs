@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore; 
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -19,11 +19,18 @@ namespace WMS_Demo.Models
         public int ItemId { get; set; }
         [ForeignKey(nameof(ItemId))]
         public Item? Item { get; set; } // Tham chiếu đến vật tư.
+        [Column(TypeName = "decimal(18, 2)")]
 
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
 
         public int LocationId { get; set; }
         [ForeignKey(nameof(LocationId))]
         public Location? Location { get; set; } // Tham chiếu đến vị trí.
+        [Column(TypeName = "decimal(18, 2)")]
+
+        public decimal SalesPrice { get; set; } // Giá bán.
+        [Column(TypeName = "decimal(18, 2)")]
+
+        public decimal CostPrice { get; set; } // Giá vốn.
     }
 }

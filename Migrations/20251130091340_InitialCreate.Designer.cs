@@ -12,7 +12,7 @@ using WMS_Demo.Data;
 namespace WMS_Demo.Migrations
 {
     [DbContext(typeof(WmsDbContext))]
-    [Migration("20251123025139_InitialCreate")]
+    [Migration("20251130091340_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -308,8 +308,11 @@ namespace WMS_Demo.Migrations
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Quantity")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.HasKey("Id");
 
@@ -335,20 +338,26 @@ namespace WMS_Demo.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<double>("ChangeQuantity")
-                        .HasColumnType("float");
+                    b.Property<decimal>("ChangeQuantity")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
-                    b.Property<double>("NewStock")
-                        .HasColumnType("float");
+                    b.Property<decimal>("MovingAverageCost")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("NewStock")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<int>("ReferenceId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
+
+                    b.Property<decimal>("TransactionPrice")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.HasKey("Id");
 
@@ -370,16 +379,19 @@ namespace WMS_Demo.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<double>("CurrentStock")
-                        .HasColumnType("float");
+                    b.Property<decimal>("CurrentCost")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("CurrentStock")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<double>("SafetyStock")
-                        .HasColumnType("float");
+                    b.Property<decimal>("SafetyStock")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("Unit")
                         .IsRequired()
@@ -457,6 +469,9 @@ namespace WMS_Demo.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<decimal>("CostPrice")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
 
@@ -466,8 +481,11 @@ namespace WMS_Demo.Migrations
                     b.Property<int>("OutboundReceiptId")
                         .HasColumnType("int");
 
-                    b.Property<double>("Quantity")
-                        .HasColumnType("float");
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("SalesPrice")
+                        .HasColumnType("decimal(18, 2)");
 
                     b.HasKey("Id");
 

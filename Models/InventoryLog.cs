@@ -21,9 +21,15 @@ namespace WMS_Demo.Models
         public string ActionType { get; set; } = string.Empty; // Loại hành động: "INBOUND", "OUTBOUND", "ADJUSTMENT".
 
         public int ReferenceId { get; set; } // ID tham chiếu đến phiếu nhập/xuất.
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal ChangeQuantity { get; set; } // Số lượng thay đổi (dương hoặc âm).
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal NewStock { get; set; } // Số lượng tồn kho mới sau khi thay đổi.
+        [Column(TypeName = "decimal(18, 2)")]
 
-        public double ChangeQuantity { get; set; } // Số lượng thay đổi (dương hoặc âm).
+        public decimal TransactionPrice { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
 
-        public double NewStock { get; set; } // Số lượng tồn kho mới sau khi thay đổi.
+        public decimal MovingAverageCost { get; set; }
     }
 }

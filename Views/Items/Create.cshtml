@@ -42,7 +42,7 @@
 
                         <div class="col-md-6">
                             <label asp-for="CurrentStock" class="form-label fw-bold">Tồn kho ban đầu</label>
-                            <input asp-for="CurrentStock" type="number" class="form-control rounded-0" />
+                            <input readonly='true' asp-for="CurrentStock" type="number" class="form-control rounded-0" value='0' />
                             <span asp-validation-for="CurrentStock" class="text-danger small fw-bold"></span>
                         </div>
                     </div>

@@ -31,9 +31,9 @@ namespace WMS_Demo.Controllers
 
             if (!string.IsNullOrEmpty(searchString))
             {
-                
+
                 var searchLower = searchString.ToLower();
-                items = items.Where(s => s.Name.ToLower().Contains(searchLower) || 
+                items = items.Where(s => s.Name.ToLower().Contains(searchLower) ||
                                          s.Code.ToLower().Contains(searchLower));
             }
 
@@ -47,7 +47,7 @@ namespace WMS_Demo.Controllers
         {
             if (id == null) return NotFound();
 
-            var item = await _context.Items.AsNoTracking() 
+            var item = await _context.Items.AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (item == null) return NotFound();
@@ -67,6 +67,7 @@ namespace WMS_Demo.Controllers
         public async Task<IActionResult> Create([Bind("Id,Name,Code,Unit,SafetyStock,CurrentStock")] Item item)
         {
             // 1. Check trùng Code thủ công trước khi check ModelState
+            var codeSKU=item.Code?.Trim();
             if (await _context.Items.AnyAsync(i => i.Code == item.Code))
             {
                 // Thêm lỗi vào ModelState 
@@ -75,8 +76,9 @@ namespace WMS_Demo.Controllers
 
             if (ModelState.IsValid)
             {
-                try 
+                try
                 {
+                    item.CurrentStock = 0; // Mặc định tồn kho ban đầu là 0 khi tạo mới
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Thêm mới thành công: {item.Name}";
@@ -104,8 +106,9 @@ namespace WMS_Demo.Controllers
         // POST: Items/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Unit,SafetyStock")] Item item)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Unit,Code,SafetyStock")] Item item)
         {
+
             if (id != item.Id) return NotFound();
 
             // // Check trùng code khi sửa (ngoại trừ chính nó) // Sửa đổi không cho đổi code sku
@@ -114,9 +117,9 @@ namespace WMS_Demo.Controllers
             // {
             //     ModelState.AddModelError("Code", "Mã vật tư đã được sử dụng bởi sản phẩm khác.");
             // }
-
             if (ModelState.IsValid)
             {
+
                 try
                 {
                     // Lấy thằng cũ lên để update an toàn
@@ -140,7 +143,7 @@ namespace WMS_Demo.Controllers
                     else throw;
                 }
                 catch (Exception ex)
-                {       
+                {
                     // TempData["Error"] = $"Cập nhật thất bại: {item.Name}";
 
                     ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
@@ -175,9 +178,9 @@ namespace WMS_Demo.Controllers
             }
 
             // Logic kiểm tra ràng buộc dữ liệu (Referential Integrity Check)
-           
-            bool hasRelatedData = await _context.InboundReceiptDetails.AnyAsync(d => d.ItemId == id) 
-                       || await _context.OutboundReceiptDetails.AnyAsync(d => d.ItemId == id) 
+
+            bool hasRelatedData = await _context.InboundReceiptDetails.AnyAsync(d => d.ItemId == id)
+                       || await _context.OutboundReceiptDetails.AnyAsync(d => d.ItemId == id)
                        || await _context.InventoryLogs.AnyAsync(l => l.ItemId == id);
 
             if (hasRelatedData)
@@ -186,17 +189,17 @@ namespace WMS_Demo.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            try 
+            try
             {
                 _context.Items.Remove(item);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = $"Đã xóa: {item.Name}";
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                 TempData["Error"] = $"Lỗi khi xóa: {ex.Message}";
+                TempData["Error"] = $"Lỗi khi xóa: {ex.Message}";
             }
-            
+
             return RedirectToAction(nameof(Index));
         }
 

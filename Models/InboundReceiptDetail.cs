@@ -18,11 +18,15 @@ namespace WMS_Demo.Models
         public int ItemId { get; set; }
         [ForeignKey(nameof(ItemId))]
         public Item? Item { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
 
-        public double Quantity { get; set; }
+        public decimal Quantity { get; set; }
 
         public int LocationId { get; set; }
         [ForeignKey(nameof(LocationId))]
         public Location? Location { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+    
+        public decimal UnitPrice { get; set; }
     }
 }

@@ -24,8 +24,12 @@ namespace WMS_Demo.Models
         public string Unit { get; set; } = "Cái"; // Đơn vị tính.
         
         [Required]
-        public double SafetyStock { get; set; } = 0; // Mức tồn kho an toàn.
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal SafetyStock { get; set; } = 0; // Mức tồn kho an toàn.
+        [Column(TypeName = "decimal(18, 2)")]
 
-        public double CurrentStock { get; set; } = 0; 
+        public decimal CurrentStock { get; set; } = 0; 
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal CurrentCost { get; set; } = 0; // Giá vốn bình quân hiện tại
     }
 }

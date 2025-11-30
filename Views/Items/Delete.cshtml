@@ -9,7 +9,31 @@
         <h1 class="display-1"><i class="fa-solid fa-triangle-exclamation"></i></h1>
         <h3 class="fw-bold">BẠN CÓ CHẮC CHẮN MUỐN XÓA VẬT TƯ</h3>
         <p class="lead"><strong>@Model.Name (@Model.Code)</strong></p>
-        <p class="mb-0 small">...</p>
+        @* <p class="mb-0 small">...</p> *@
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted">Mã SKU (Code)</dt>
+                <dd class="col-sm-8 fw-bold fs-5">@Model.Code</dd>
+
+                <dt class="col-sm-4 text-muted">Tên hàng hóa</dt>
+                <dd class="col-sm-8">@Model.Name</dd>
+
+                <dt class="col-sm-4 text-muted">Đơn vị tính</dt>
+                <dd class="col-sm-8"><span class="badge bg-secondary">@Model.Unit</span></dd>
+
+                <hr class="my-3"/>
+
+                <dt class="col-sm-4 text-muted">Tồn kho hiện tại</dt>
+                <dd class="col-sm-8 fw-bold @(Model.CurrentStock < Model.SafetyStock ? "text-danger" : "text-success")">
+                    @Model.CurrentStock
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Mức an toàn (Min)</dt>
+                <dd class="col-sm-8">@Model.SafetyStock</dd>
+                <dt class="col-sm-4 text-muted">Đơn giá bình quân</dt>
+                <dd class="col-sm-8">@Model.CurrentCost</dd>
+            </dl>
+        </div>
     </div>
 
     <div class="mt-4">

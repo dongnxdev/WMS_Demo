@@ -42,6 +42,7 @@
                         <th class="text-center py-3">Đơn vị</th>
                         <th class="text-end py-3">An toàn</th>
                         <th class="text-end py-3">Tồn kho</th>
+                        <th class="text-end py-3">Giá bình quân</th>
                         <th class="text-center py-3">Thao tác</th>
                     </tr>
                 </thead>
@@ -62,6 +63,7 @@
                                         <i class="fa-solid fa-triangle-exclamation ms-1 animate-flicker" title="Cảnh báo: Dưới định mức!"></i>
                                     }
                                 </td>
+                                <td class="text-end text-muted">@item.CurrentCost</td>
                                 <td class="text-center">
                                     <div class="btn-group" role="group">
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary" title="Sửa"><i class="fa-solid fa-pen"></i></a>

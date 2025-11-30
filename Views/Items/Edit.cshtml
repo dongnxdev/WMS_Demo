@@ -17,9 +17,10 @@
 
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label asp-for="Code" class="form-label fw-bold">Mã SKU</label>
-                            <input asp-for="Code" class="form-control rounded-0 bg-light" readonly />
+                           <label asp-for="Code" class="form-label fw-bold"> Mã SKU</label>
+                            <input asp-for="Code" readonly class="form-control rounded-0" />
                             <span asp-validation-for="Code" class="text-danger small"></span>
+                            
                         </div>
 
                         <div class="col-md-6">
@@ -43,6 +44,10 @@
                         <div class="col-md-6">
                             <div class="form-label fw-bold">Hiện đang có</div>
                             <span class=" form-control rounded-0 @(Model.CurrentStock < @Model.SafetyStock ? "text-danger" :"text-success")">@Model.CurrentStock</span>                   
+                        </div>
+                         <div class="col-md-6">
+                            <div class="form-label fw-bold">Đơn giá bình quân</div>
+                            <span class=" form-control rounded-0 ">@Model.CurrentCost</span>                   
                         </div>
                     </div>
 
