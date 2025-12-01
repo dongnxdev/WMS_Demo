@@ -19,7 +19,7 @@ namespace WMS_Demo.Controllers
 
         private const int DefaultPageSize = 10;
 
-        // Inject mấy cái service của Identity vào để sai bảo
+        // Tiêm (Inject) các dịch vụ của Identity để sử dụng
         public AccountController(
             UserManager<ApplicationUser> userManager, 
             SignInManager<ApplicationUser> signInManager,
@@ -105,7 +105,7 @@ namespace WMS_Demo.Controllers
         public IActionResult Create() => View();
 
         // GET: Xem chi tiết nhân viên
-        // [Authorize(Roles = "Admin")] // Gỡ bỏ attribute này để xử lý logic bên trong
+        // [Authorize(Roles = "Admin")] // Tạm thời gỡ bỏ attribute này để xử lý logic kiểm tra quyền bên trong
         public async Task<IActionResult> Details(string id)
         {
             if (id == null) return NotFound();
@@ -143,12 +143,19 @@ namespace WMS_Demo.Controllers
                 return View(model);
             }
             var emailInUse = await _userManager.Users.AnyAsync(u => u.Email == model.Email);
-            var staffCodeInUse = await _userManager.Users.AnyAsync(u => u.Email == model.Email);
+            // Kiểm tra trùng mã nhân viên nếu mã nhân viên được nhập
+            var staffCodeInUse = !string.IsNullOrEmpty(model.StaffCode) && await _userManager.Users.AnyAsync(u => u.StaffCode == model.StaffCode);
             
-            if(emailInUse || staffCodeInUse)
+            if(emailInUse)
             {
-                ModelState.AddModelError("", "Email / Mã nhân viên này đã có người dùng rồi.");
+                ModelState.AddModelError("", "Email này đã được sử dụng.");
                 return View(model);
+            }
+
+            if(staffCodeInUse)
+            {
+                 ModelState.AddModelError("", "Mã nhân viên này đã được sử dụng.");
+                 return View(model);
             }
             var user = new ApplicationUser 
             { 
@@ -216,7 +223,7 @@ namespace WMS_Demo.Controllers
             user.FullName = model.FullName;
             user.IsActive = model.IsActive;
             user.StaffCode = model.StaffCode;
-            // Không cho sửa Email/Username ở đây cho đỡ rắc rối logic,
+            // Không cho phép sửa Email/Username tại đây để đảm bảo tính nhất quán của logic xác thực
             
             var result = await _userManager.UpdateAsync(user);
 

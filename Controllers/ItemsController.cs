@@ -67,11 +67,11 @@ namespace WMS_Demo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Code,Unit,SafetyStock,CurrentStock")] Item item)
         {
-            // 1. Check trùng Code thủ công trước khi check ModelState
+            // 1. Kiểm tra trùng mã vật tư (Code) thủ công trước khi kiểm tra ModelState
             var codeSKU=item.Code?.Trim();
             if (await _context.Items.AnyAsync(i => i.Code == item.Code))
             {
-                // Thêm lỗi vào ModelState 
+                // Thêm thông báo lỗi vào ModelState
                 ModelState.AddModelError("Code", "Mã vật tư này đã tồn tại.");
             }
 
@@ -123,7 +123,7 @@ namespace WMS_Demo.Controllers
 
                 try
                 {
-                    // Lấy thằng cũ lên để update an toàn
+                    // Lấy dữ liệu cũ để cập nhật an toàn
                     var existingItem = await _context.Items.FindAsync(id);
                     if (existingItem == null) return NotFound();
 

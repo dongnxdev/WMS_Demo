@@ -53,9 +53,7 @@ namespace WMS_Demo.Controllers
                         CreatedDate = model.Date,
                         SupplierId = model.BusinessPartnerId ?? 0, // Xử lý trường hợp `BusinessPartnerId` có thể là null.
                         Notes = model.Remarks,
-                        // TODO: Cần triển khai việc theo dõi người dùng tạo phiếu.
                         UserId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-                       
                     };
                     _context.InboundReceipts.Add(receipt);
                     _context.SaveChanges(); // Lưu thay đổi để lấy ID của phiếu nhập kho vừa tạo.

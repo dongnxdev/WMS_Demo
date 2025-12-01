@@ -17,10 +17,10 @@ namespace WMS_Demo.Data
             // 1. Tạo Database nếu chưa có
             context.Database.EnsureCreated();
 
-            // Check User rồi thì coi như đã seed, 
+            // Kiểm tra xem đã có User nào chưa, nếu có thì coi như đã seed dữ liệu
             if (await userManager.Users.AnyAsync())
             {
-                Console.WriteLine("Database đã tồn tại");
+                Console.WriteLine("Cơ sở dữ liệu đã tồn tại");
                 return; 
             }
 
@@ -39,25 +39,25 @@ namespace WMS_Demo.Data
             {
                 UserName = "admin@wms.com",
                 Email = "admin@wms.com",
-                FullName = "Nguyễn Xuân Đông (Boss)",
-                StaffCode = "BOSS-01",
+                FullName = "Nguyễn Xuân Đông (Quản trị viên)",
+                StaffCode = "ADMIN-01",
                 IsActive = true,
                 EmailConfirmed = true
             };
             await userManager.CreateAsync(adminUser, "Abc@12345");
-            await userManager.AddToRoleAsync(adminUser, "Admin"); // Gán role Admin
+            await userManager.AddToRoleAsync(adminUser, "Admin"); // Gán vai trò Admin
 
             var staffUser = new ApplicationUser
             {
                 UserName = "staff@wms.com",
                 Email = "staff@wms.com",
-                FullName = "Nhân viên cần cù",
-                StaffCode = "STAFF-99",
+                FullName = "Nguyễn Văn Nhân Viên",
+                StaffCode = "STAFF-01",
                 IsActive = true,
                 EmailConfirmed = true
             };
             await userManager.CreateAsync(staffUser, "Abc@12345");
-            await userManager.AddToRoleAsync(staffUser, "User"); // Gán role User
+            await userManager.AddToRoleAsync(staffUser, "User"); // Gán vai trò User
             
             var userFaker = new Faker<ApplicationUser>()
                 .RuleFor(u => u.FullName, f => f.Name.FullName())
