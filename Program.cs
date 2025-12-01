@@ -53,6 +53,9 @@ if (app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/Errors/{0}");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseRouting();
+
 // Kích hoạt middleware xác thực và phân quyền.
 app.UseAuthentication(); 
 app.UseAuthorization();

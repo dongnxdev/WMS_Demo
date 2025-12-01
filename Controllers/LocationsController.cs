@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using WMS_Demo.Data;
 using WMS_Demo.Models;
 using WMS_Demo.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_Demo.Controllers
 {
+     [Authorize]
     public class LocationsController : Controller
     {
         private readonly WmsDbContext _context;
@@ -116,15 +118,18 @@ namespace WMS_Demo.Controllers
         {
             if (id != location.Id) return NotFound();
             var code = location.Code?.Trim();
-            if (await _context.Locations.AnyAsync(i => i.Code == code))
+            var existingLocation = await _context.Locations.FindAsync(id);
+            var codeInUse = await _context.Locations.AnyAsync(i => i.Code == code);
+            if (codeInUse && existingLocation.Code?.Trim() != code)
             {
                 ModelState.AddModelError("Code", "Mã vị trí này đã tồn tại.");
+                return View(location);
             }
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingLocation = await _context.Locations.FindAsync(id);
+                   
                     if (existingLocation == null) return NotFound();
 
                     existingLocation.Code = code;

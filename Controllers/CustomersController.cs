@@ -8,9 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using WMS_Demo.Data;
 using WMS_Demo.Models;
 using WMS_Demo.Helpers;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_Demo.Controllers
 {
+    [Authorize] 
     public class CustomersController : Controller
     {
         private readonly WmsDbContext _context;

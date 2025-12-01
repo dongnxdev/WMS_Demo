@@ -12,6 +12,7 @@ namespace WMS_Demo.Data
         {
             var context = serviceProvider.GetRequiredService<WmsDbContext>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
             // 1. Tạo Database nếu chưa có
             context.Database.EnsureCreated();
@@ -21,6 +22,16 @@ namespace WMS_Demo.Data
             {
                 Console.WriteLine("Database đã tồn tại");
                 return; 
+            }
+
+            // --- TẠO ROLES ---
+            string[] roleNames = { "Admin", "User" };
+            foreach (var roleName in roleNames)
+            {
+                if (!await roleManager.RoleExistsAsync(roleName))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(roleName));
+                }
             }
 
             // --- A. TẠO ACCOUNT (USER) ---
@@ -33,7 +44,8 @@ namespace WMS_Demo.Data
                 IsActive = true,
                 EmailConfirmed = true
             };
-            await userManager.CreateAsync(adminUser, "Abc@12345"); 
+            await userManager.CreateAsync(adminUser, "Abc@12345");
+            await userManager.AddToRoleAsync(adminUser, "Admin"); // Gán role Admin
 
             var staffUser = new ApplicationUser
             {
@@ -45,6 +57,7 @@ namespace WMS_Demo.Data
                 EmailConfirmed = true
             };
             await userManager.CreateAsync(staffUser, "Abc@12345");
+            await userManager.AddToRoleAsync(staffUser, "User"); // Gán role User
             
             var userFaker = new Faker<ApplicationUser>()
                 .RuleFor(u => u.FullName, f => f.Name.FullName())
@@ -57,7 +70,8 @@ namespace WMS_Demo.Data
             var fakeUsers = userFaker.Generate(5); // Tạo thêm 5 user giả
             foreach (var user in fakeUsers)
             {
-                await userManager.CreateAsync(user, "Abc@12345");
+                await userManager.CreateAsync(user, "Abc@12345"); // Tạo user
+                await userManager.AddToRoleAsync(user, "User"); // Gán role User
             }
         
             

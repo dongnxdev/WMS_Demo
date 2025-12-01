@@ -1,9 +1,10 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using WMS_Demo.Models;
-
+using Microsoft.AspNetCore.Authorization;
 namespace WMS_Demo.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
         public IActionResult Index()

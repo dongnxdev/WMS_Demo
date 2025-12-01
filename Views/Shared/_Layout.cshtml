@@ -1,4 +1,8 @@
-﻿<!DOCTYPE html>
+﻿
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
@@ -20,6 +24,12 @@
                 <a asp-controller="Home" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
                     <i class="fa-solid fa-gauge-high me-3"></i>Dashboard
                 </a>
+                 @if (User.IsInRole("Admin"))
+                {
+                    <a asp-controller="Account" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
+                        <i class="fa-solid fa-users-gear me-3"></i>Quản lý nhân sự
+                    </a>
+                }
                 
                 <div class="small text-uppercase text-muted px-4 pt-4 pb-2">Quản lý Kho</div>
                 
@@ -57,16 +67,16 @@
     </div>
 
     <div class="d-none d-md-flex flex-grow-1 mx-4" style="max-width: 600px;">
-        <form class="input-group w-100" asp-controller="Home" asp-action="Index" method="get"> <input type="text" name="searchString" class="form-control border-end-0 bg-light" placeholder="Nhập từ khóa tìm kiếm vật tư, đối tác..." aria-label="Search">
+        @* <form class="input-group w-100" asp-controller="Home" asp-action="Index" method="get"> <input type="text" name="searchString" class="form-control border-end-0 bg-light" placeholder="Nhập từ khóa tìm kiếm vật tư, đối tác..." aria-label="Search">
             <button class="btn border-start-0 bg-light" type="submit">
                 <i class="fa-solid fa-search text-muted"></i>
             </button>
-        </form>
+        </form> *@
     </div>
 
     <div class="d-flex align-items-center gap-3 ms-auto">
         
-        <a href="#" class="d-md-none text-dark">
+        @* <a href="#" class="d-md-none text-dark">
             <i class="fa-solid fa-search fa-lg"></i>
         </a>
 
@@ -75,29 +85,39 @@
             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
                 9+
             </span>
-        </div>
+        </div> *@
 
         <div class="dropdown">
             <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle text-dark" id="dropdownUser1" data-bs-toggle="dropdown" aria-expanded="false">
                 <div class="user-avatar">
                     @{
-                        var userName = User.Identity?.Name ?? "Admin";
+                        var currentUser = SignInManager.IsSignedIn(User) ? await UserManager.GetUserAsync(User) : null;
+                        var userName = currentUser?.FullName ?? User.Identity?.Name ?? "Admin";
                         var initial = !string.IsNullOrEmpty(userName) ? userName.Substring(0, 1).ToUpper() : "A";
                     }
                     @initial
                 </div>
                 <div class="d-none d-sm-block lh-1 text-start">
-                    <div class="fw-bold small">@(User.Identity?.Name ?? "Nguyễn Xuân Đông")</div>
-                    <div class="text-muted small" style="font-size: 0.75rem;">Giám đốc</div>
+                    <div class="fw-bold small">@(currentUser?.FullName ?? "Chưa đăng nhập")</div>
+                    @{
+                        var role = "";
+                        try{
+                            var roles = await UserManager.GetRolesAsync(currentUser);
+                            role = roles.FirstOrDefault();    
+                        }
+                        catch{
+                                role = "Chưa đăng nhập";
+                        }
+                    }
+                    <div class="text-muted small" style="font-size: 0.75rem;">@role</div>
                 </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="dropdownUser1">
                 <li><h6 class="dropdown-header text-uppercase small text-muted">Tài khoản</h6></li>
-                <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Profile"><i class="fa-regular fa-id-card me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
-                <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-sliders me-2 text-warning"></i>Cấu hình hệ thống</a></li>
+                <li><a class="dropdown-item py-2" asp-controller="Account" asp-action="Details" asp-route-id="@currentUser?.Id"><i class="fa-regular fa-id-card me-2 text-primary"></i>Hồ sơ cá nhân</a></li>
                 <li><hr class="dropdown-divider"></li>
                 <li>
-                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <form asp-controller="Account" asp-action="Logout" method="post">
                         <button type="submit" class="dropdown-item text-danger w-100 py-2 fw-bold"><i class="fa-solid fa-power-off me-2"></i>Đăng xuất</button>
                     </form>
                 </li>

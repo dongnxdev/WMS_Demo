@@ -1,0 +1,31 @@
+@model WMS_Demo.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Xóa Nhân Viên";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card border-danger shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0"><i class="fa-solid fa-triangle-exclamation me-2"></i>Xác Nhận Xóa</h4>
+            </div>
+            <div class="card-body text-center bg-light">
+                <i class="fa-solid fa-skull-crossbones fa-4x text-danger mb-3"></i>
+                <h3 class="text-danger">Bạn có chắc chắn muốn xóa?</h3>
+                <p class="lead">Nhân viên: <strong>@Model.FullName</strong> (@Model.StaffCode)</p>
+                <p class="text-muted small">Hành động này không thể hoàn tác. Dữ liệu liên quan có thể bị ảnh hưởng.</p>
+
+                <form asp-action="Delete" class="mt-4">
+                    <input type="hidden" asp-for="Id" />
+                    <a asp-action="Index" class="btn btn-secondary btn-industrial me-2">
+                        <i class="fa-solid fa-xmark"></i> Hủy
+                    </a>
+                    <button type="submit" class="btn btn-danger btn-industrial">
+                        <i class="fa-solid fa-trash-can"></i> Xác nhận
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

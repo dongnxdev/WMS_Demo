@@ -1,0 +1,73 @@
+@model WMS_Demo.Models.ApplicationUser
+
+@{
+    ViewData["Title"] = "Hồ Sơ Nhân Viên";
+    var role = ViewData["Role"] as string;
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-industrial">
+            <div class="card-header bg-info text-dark">
+                <h4 class="mb-0 fw-bold"><i class="fa-solid fa-id-card me-2"></i>Hồ Sơ Nhân Viên</h4>
+            </div>
+            <div class="card-body bg-light">
+                <div class="row g-4">
+                    <div class="col-md-4 text-center border-end">
+                        <div class="mb-3">
+                            <i class="fa-solid fa-user-circle fa-6x text-secondary"></i>
+                        </div>
+                        <h5 class="fw-bold text-uppercase">@Model.FullName</h5>
+                        <p class="text-muted mb-1"><i class="fa-solid fa-barcode me-1"></i> @Model.StaffCode</p>
+                        
+                        <div class="mt-3">
+                            @if (Model.IsActive)
+                            {
+                                <span class="badge bg-success rounded-0 px-3 py-2"><i class="fa-solid fa-check me-1"></i> Đang hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger rounded-0 px-3 py-2"><i class="fa-solid fa-ban me-1"></i> Đã vô hiệu</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <h6 class="text-uppercase text-muted fw-bold border-bottom pb-2 mb-3">Thông tin tài khoản</h6>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold text-secondary">Username:</div>
+                            <div class="col-sm-8 fw-bold">@Model.UserName</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold text-secondary">Email:</div>
+                            <div class="col-sm-8 text-primary">@Model.Email</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold text-secondary">Số điện thoại:</div>
+                            <div class="col-sm-8">@(Model.PhoneNumber ?? "Chưa cập nhật")</div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold text-secondary">Vai trò:</div>
+                            <div class="col-sm-8"><span class="badge bg-dark rounded-0">@role</span></div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-sm-4 fw-bold text-secondary">ID Hệ thống:</div>
+                            <div class="col-sm-8 small text-muted font-monospace">@Model.Id</div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top text-end">
+                    <a asp-action="Index" class="btn btn-secondary btn-industrial me-2"><i class="fa-solid fa-arrow-left"></i> Quay lại</a>
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning btn-industrial"><i class="fa-solid fa-pen-to-square"></i> Chỉnh sửa</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

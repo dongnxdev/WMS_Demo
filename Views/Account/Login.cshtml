@@ -1,0 +1,108 @@
+@{
+    Layout = null; 
+    ViewData["Title"] = "Đăng Nhập Hệ Thống";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - WMS Demo</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <style>
+        body {
+            background-color: #2c3e50;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 0;
+            border: none;
+            box-shadow: 10px 10px 0px #1a252f;
+        }
+        .login-header {
+            background-color: #f1c40f;
+            color: #2c3e50;
+            padding: 20px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-industrial {
+            background-color: #2c3e50;
+            color: white;
+            border-radius: 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+        .btn-industrial:hover {
+            background-color: #34495e;
+            transform: translateY(-2px);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+            color: #f1c40f;
+        }
+        .form-control {
+            border-radius: 0;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+        }
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #f1c40f;
+        }
+    </style>
+</head>
+<body>
+    <div class="card login-card">
+        <div class="login-header">
+            <i class="fa-solid fa-warehouse fa-3x mb-2"></i>
+            <h3>WMS System</h3>
+            <small>Cổng thông tin quản lý kho</small>
+        </div>
+        <div class="card-body p-4 bg-light">
+            <form asp-action="Login" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center fw-bold"></div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Email đăng nhập</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 rounded-0"><i class="fa-solid fa-envelope text-secondary"></i></span>
+                        <input name="email" type="email" class="form-control border-start-0" placeholder="user@example.com" required />
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small text-muted text-uppercase">Mật khẩu</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 rounded-0"><i class="fa-solid fa-lock text-secondary"></i></span>
+                        <input name="password" type="password" class="form-control border-start-0" placeholder="••••••••" required />
+                    </div>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input name="rememberMe" type="checkbox" class="form-check-input rounded-0" value="true" id="rememberMe" />
+                    <label class="form-check-label small" for="rememberMe">Ghi nhớ đăng nhập</label>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-industrial py-2">
+                        <i class="fa-solid fa-right-to-bracket me-2"></i> Truy cập hệ thống
+                    </button>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <small class="text-muted">Designed by DongNxDev &copy; 2025</small>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
