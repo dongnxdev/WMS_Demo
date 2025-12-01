@@ -86,8 +86,8 @@ namespace WMS_Demo.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // TempData["Error"] = $"Thêm mới thất bại: {item.Name}";
-                    ModelState.AddModelError("", $"Lỗi hệ thống: {ex.Message}");
+                    TempData["Error"] = $"Thêm mới thất bại: {item.Name}";
+                    // ModelState.AddModelError("", $"Lỗi hệ thống: {ex.Message}");
                 }
             }
             // Nếu lỗi, trả về View cùng dữ liệu đã nhập để user không phải nhập lại
@@ -144,9 +144,9 @@ namespace WMS_Demo.Controllers
                 }
                 catch (Exception ex)
                 {
-                    // TempData["Error"] = $"Cập nhật thất bại: {item.Name}";
+                    TempData["Error"] = $"Cập nhật thất bại: {item.Name}";
 
-                    ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
+                    // ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
                 }
             }
             return View(item);
