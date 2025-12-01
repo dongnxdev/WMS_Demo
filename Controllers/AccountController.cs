@@ -36,7 +36,7 @@ namespace WMS_Demo.Controllers
         // --- PHẦN LOGIN / LOGOUT ---
 
         [HttpGet]
-        [AllowAnonymous] // Chưa đăng nhập mới vào được trang đăng nhập chứ
+        [AllowAnonymous] 
         public IActionResult Login()
         {
             if (_signInManager.IsSignedIn(User))
@@ -79,7 +79,7 @@ namespace WMS_Demo.Controllers
         // --- PHẦN QUẢN LÝ NHÂN VIÊN (CRUD) ---
 
         // GET: Danh sách nhân viên
-        [Authorize(Roles = "Admin")] // Chỉ Admin mới được soi mói nhân viên
+        [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
