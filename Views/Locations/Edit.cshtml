@@ -1,37 +1,42 @@
 @model WMS_Demo.Models.Location
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Cập nhật Vị trí";
 }
 
-<h1>Edit</h1>
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card card-industrial">
+            <div class="card-header bg-warning text-dark border-bottom-0">
+                <h4 class="mb-0"><i class="fa-solid fa-pen-to-square me-2"></i>Cập nhật Vị trí: @Model.Code</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit">
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                    <input type="hidden" asp-for="Id" />
 
-<h4>Location</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="Code" class="control-label"></label>
-                <input asp-for="Code" class="form-control" />
-                <span asp-validation-for="Code" class="text-danger"></span>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="Code" class="form-label fw-bold">Mã Vị Trí</label>
+                            <input asp-for="Code" class="form-control rounded-0" />
+                            <span asp-validation-for="Code" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label asp-for="Description" class="form-label fw-bold">Mô tả</label>
+                            <input asp-for="Description" class="form-control rounded-0" />
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <a asp-action="Index" class="btn btn-secondary btn-industrial me-2">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-warning btn-industrial fw-bold">Cập nhật ngay</button>
+                    </div>
+                </form>
             </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+        </div>
     </div>
-</div>
-
-<div>
-    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

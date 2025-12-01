@@ -171,7 +171,7 @@ namespace WMS_Demo.Controllers
 
             try
             {
-                bool hasRelativeData = await _context.InboundReceipts.AnyAsync(ir => ir.SupplierId == id);
+                bool hasRelativeData = await _context.OutboundReceipts.AnyAsync(or => or.CustomerId == id);
                 if (hasRelativeData)
                 {
                     TempData["Error"] = $"Không thể xóa khách hàng {customer.Name} vì có dữ liệu liên quan.";

@@ -7,12 +7,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WMS_Demo.Data;
 using WMS_Demo.Models;
+using WMS_Demo.Helpers;
 
 namespace WMS_Demo.Controllers
 {
     public class SuppliersController : Controller
     {
         private readonly WmsDbContext _context;
+        private const int DefaultPageSize = 10;
 
         public SuppliersController(WmsDbContext context)
         {
@@ -20,9 +22,22 @@ namespace WMS_Demo.Controllers
         }
 
         // GET: Lấy danh sách tất cả các nhà cung cấp.
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
-            return View(await _context.Suppliers.ToListAsync());
+            ViewData["CurrentFilter"] = searchString;
+
+            var suppliers = _context.Suppliers.AsNoTracking();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                var searchLower = searchString.ToLower();
+                suppliers = suppliers.Where(s => s.Name.ToLower().Contains(searchLower) ||
+                                         s.PhoneNumber.ToLower().Contains(searchLower));
+            }
+
+            suppliers = suppliers.OrderByDescending(i => i.Id);
+
+            return View(await PaginatedList<Supplier>.CreateAsync(suppliers, pageNumber ?? 1, DefaultPageSize));
         }
 
         // GET: Lấy thông tin chi tiết của một nhà cung cấp cụ thể.
@@ -33,7 +48,7 @@ namespace WMS_Demo.Controllers
                 return NotFound();
             }
 
-            var supplier = await _context.Suppliers
+            var supplier = await _context.Suppliers.AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (supplier == null)
             {
@@ -50,16 +65,24 @@ namespace WMS_Demo.Controllers
         }
 
         // POST: Xử lý việc tạo mới một nhà cung cấp.
-        // Gán các thuộc tính được chỉ định từ form vào model Nhà cung cấp.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Address,PhoneNumber")] Supplier supplier)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(supplier);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                try
+                {
+                    supplier.Name = supplier.Name?.Trim();
+                    _context.Add(supplier);
+                    await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Thêm mới thành công: {supplier.Name}";
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Thêm mới thất bại: {supplier.Name}";
+                }
             }
             return View(supplier);
         }
@@ -81,35 +104,35 @@ namespace WMS_Demo.Controllers
         }
 
         // POST: Xử lý việc cập nhật một nhà cung cấp đã có.
-        // Gán các thuộc tính được chỉ định từ form vào model Nhà cung cấp.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,PhoneNumber")] Supplier supplier)
         {
-            if (id != supplier.Id)
-            {
-                return NotFound();
-            }
+            if (id != supplier.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(supplier);
+                    var existingSupplier = await _context.Suppliers.FindAsync(id);
+                    if (existingSupplier == null) return NotFound();
+
+                    existingSupplier.Name = supplier.Name;
+                    existingSupplier.Address = supplier.Address;
+                    existingSupplier.PhoneNumber = supplier.PhoneNumber;
                     await _context.SaveChangesAsync();
+                    TempData["Success"] = $"Cập nhật thành công: {existingSupplier.Name}";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!SupplierExists(supplier.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!SupplierExists(supplier.Id)) return NotFound();
+                    else throw;
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Cập nhật thất bại: {supplier.Name}";
+                }
             }
             return View(supplier);
         }
@@ -117,17 +140,11 @@ namespace WMS_Demo.Controllers
         // GET: Hiển thị trang xác nhận xóa một nhà cung cấp.
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var supplier = await _context.Suppliers
+            var supplier = await _context.Suppliers.AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (supplier == null)
-            {
-                return NotFound();
-            }
+            if (supplier == null) return NotFound();
 
             return View(supplier);
         }
@@ -138,12 +155,29 @@ namespace WMS_Demo.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var supplier = await _context.Suppliers.FindAsync(id);
-            if (supplier != null)
+            if (supplier == null)
             {
-                _context.Suppliers.Remove(supplier);
+                TempData["Error"] = "Không tìm thấy nhà cung cấp để xóa. Có thể đã bị xóa trước đó.";
+                return RedirectToAction(nameof(Index));
             }
 
-            await _context.SaveChangesAsync();
+            bool hasRelatedData = await _context.InboundReceipts.AnyAsync(ir => ir.SupplierId == id);
+            if (hasRelatedData)
+            {
+                TempData["Error"] = $"Không thể xóa nhà cung cấp '{supplier.Name}' vì đã có lịch sử nhập hàng.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                _context.Suppliers.Remove(supplier);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Xóa thành công: {supplier.Name}";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Xóa thất bại: {supplier.Name}. Lỗi hệ thống: {ex.Message}";
+            }
             return RedirectToAction(nameof(Index));
         }
 
