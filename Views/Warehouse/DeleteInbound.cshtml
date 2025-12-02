@@ -1,0 +1,54 @@
+@model WMS_Demo.Models.InboundReceipt
+
+@{
+    ViewData["Title"] = "Xóa Phiếu Nhập Kho";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger shadow-lg">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> CẢNH BÁO: XÓA PHIẾU NHẬP</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning text-center" role="alert">
+                        <h4 class="alert-heading fw-bold">Bạn có chắc chắn muốn xóa không?</h4>
+                        <p class="mb-0">Hành động này sẽ <strong>xóa vĩnh viễn</strong> phiếu nhập số <strong>PN-@Model.Id.ToString("D6")</strong>.</p>
+                        <hr>
+                        <p class="mb-0 text-danger fw-bold">
+                            <i class="bi bi-arrow-counterclockwise"></i>
+                            Hệ thống sẽ TỰ ĐỘNG TRỪ NGƯỢC tồn kho của các vật tư trong phiếu này.
+                        </p>
+                    </div>
+
+                    <h5 class="mt-4 border-bottom pb-2">Thông tin phiếu cần xóa:</h5>
+                    <dl class="row mt-3">
+                        <dt class="col-sm-4">Ngày nhập:</dt>
+                        <dd class="col-sm-8">@Model.CreatedDate.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-4">Nhà cung cấp:</dt>
+                        <dd class="col-sm-8">@(Model.Supplier?.Name)</dd>
+
+                        <dt class="col-sm-4">Người tạo:</dt>
+                        <dd class="col-sm-8">@(Model.CreatedBy?.UserName)</dd>
+                        
+                        <dt class="col-sm-4">Số mặt hàng:</dt>
+                        <dd class="col-sm-8 fw-bold">@Model.Details.Count dòng</dd>
+                    </dl>
+
+                    <form asp-action="DeleteInbound" class="text-end mt-4">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <a asp-action="InboundIndex" class="btn btn-secondary me-2">
+                            <i class="bi bi-x-circle"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-trash-fill"></i> Xác nhận
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
