@@ -9,12 +9,12 @@ namespace WMS_Demo.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            return RedirectToAction("Reports", "Report");
         }
 
         public IActionResult Privacy()
         {
-            return View();
+           return RedirectToAction("Reports", "Report");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

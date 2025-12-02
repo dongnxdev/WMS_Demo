@@ -18,7 +18,7 @@ namespace WMS_Demo.Models
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
 
         [Required, MaxLength(50)]
-        public string ActionType { get; set; } = string.Empty; // Loại hành động: "INBOUND", "OUTBOUND", "ADJUSTMENT".
+        public string ActionType { get; set; } = string.Empty; // Loại hành động: "INBOUND", "OUTBOUND", "INBOUND_REVERT","OUTBOUND_REVERT".
 
         public int ReferenceId { get; set; } // ID tham chiếu đến phiếu nhập/xuất.
         [Column(TypeName = "decimal(18, 2)")]

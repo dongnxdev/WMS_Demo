@@ -1,0 +1,105 @@
+@model WMS_Demo.ViewModels.InventoryReportViewModel
+
+@{
+    ViewData["Title"] = "Báo cáo Hiệu quả Kho";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary"><i class="bi bi-graph-up-arrow"></i> Báo cáo Hiệu quả Kinh doanh & Tồn kho</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary">Xem Log chi tiết</a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body bg-light">
+            <form asp-action="Report" method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Từ ngày</label>
+                    <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Đến ngày</label>
+                    <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Cập nhật Báo cáo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3 shadow-sm h-100">
+                <div class="card-header">Tổng giá trị kho (Hiện tại)</div>
+                <div class="card-body">
+                    <h3 class="card-title">@Model.TotalInventoryValue.ToString("C0")</h3>
+                    <p class="card-text"><small>Tính trên giá vốn bình quân hiện tại</small></p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3 shadow-sm h-100">
+                <div class="card-header">Doanh thu (Theo kỳ)</div>
+                <div class="card-body">
+                    <h3 class="card-title">@Model.TotalRevenue.ToString("C0")</h3>
+                    <p class="card-text"><small>Tổng giá trị xuất bán</small></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3 shadow-sm h-100">
+                <div class="card-header">Giá vốn hàng bán (COGS)</div>
+                <div class="card-body">
+                    <h3 class="card-title">@Model.TotalCostOfGoodsSold.ToString("C0")</h3>
+                    <p class="card-text"><small>Chi phí vốn của hàng đã xuất</small></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3 shadow-sm h-100">
+                <div class="card-header">Lợi nhuận gộp</div>
+                <div class="card-body">
+                    <h3 class="card-title">@Model.GrossProfit.ToString("C0")</h3>
+                    <p class="card-text">
+                        Margin: <strong>@Model.ProfitMargin.ToString("N1")%</strong>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0 text-success">🏆 Top 10 Sản phẩm mang lại Lợi nhuận cao nhất</h5>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã hàng</th>
+                        <th>Tên hàng</th>
+                        <th class="text-end">Số lượng bán</th>
+                        <th class="text-end">Doanh thu</th>
+                        <th class="text-end">Lợi nhuận</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.TopSellingItems)
+                    {
+                        <tr>
+                            <td>@item.ItemCode</td>
+                            <td class="fw-bold">@item.ItemName</td>
+                            <td class="text-end">@item.SoldQuantity.ToString("N0")</td>
+                            <td class="text-end">@item.Revenue.ToString("N0")</td>
+                            <td class="text-end text-success fw-bold">@item.Profit.ToString("N0")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

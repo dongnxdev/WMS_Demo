@@ -27,7 +27,7 @@ namespace WMS_Demo.Controllers
         }
 
         // ==========================================
-        // NHẬP KHO (INBOUND)
+        #region NHẬP KHO (INBOUND)
         // ==========================================
 
         public async Task<IActionResult> InboundIndex(string searchString, int? pageNumber)
@@ -279,9 +279,9 @@ namespace WMS_Demo.Controllers
             }
             return RedirectToAction(nameof(InboundIndex));
         }
-
+        #endregion
         // ==========================================
-        // XUẤT KHO (OUTBOUND)
+        #region  XUẤT KHO (OUTBOUND)
         // ==========================================
 
         public async Task<IActionResult> OutboundIndex(string searchString, int? pageNumber)
@@ -537,9 +537,9 @@ namespace WMS_Demo.Controllers
             return RedirectToAction(nameof(OutboundIndex));
         }
 
-
+        #endregion
         // ==========================================
-        // KHU VỰC: AJAX API (Phục vụ Search Dropdown Select2)
+        #region  KHU VỰC: AJAX API (Phục vụ Search Dropdown Select2)
         // ==========================================
 
         [HttpGet]
@@ -654,7 +654,6 @@ namespace WMS_Demo.Controllers
             // Tồn hiện tại = Nhập - Xuất
             return totalInbound - totalOutbound;
         }
-
-
+        #endregion
     }
 }
