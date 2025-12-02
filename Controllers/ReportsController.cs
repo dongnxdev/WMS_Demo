@@ -7,9 +7,11 @@ using WMS_Demo.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_Demo.Controllers
 {
+    [Authorize]
     public class ReportsController : Controller
     {
         private readonly WmsDbContext _context;
