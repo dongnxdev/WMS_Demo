@@ -95,32 +95,22 @@
 @section Scripts {
 <script>
     function printReceipt() {
-        var body = $('body');
-        var sidebarWasOpen = !body.hasClass('sb-sidenav-toggled');
-
-        // Nếu sidebar đang mở, thì đóng nó lại
-        if (sidebarWasOpen) {
-            body.addClass('sb-sidenav-toggled');
-        }
-
-        // Đợi một chút để animation của sidebar hoàn tất rồi mới in
-        setTimeout(function () {
-            window.print();
-        }, 300); // 300ms
-
-        // Sau khi in xong (người dùng đóng dialog in), kiểm tra và mở lại sidebar nếu cần
-        window.onafterprint = function () {
-            if (sidebarWasOpen) {
-                body.removeClass('sb-sidenav-toggled');
-            }
-        };
+        window.print();
     }
 </script>
 }
 
 <style>
     @@media print {
-        .btn, header, footer { display: none !important; }
-        .card { border: 1px solid #000 !important; }
+        .btn, header, footer, .main-header, .main-sidebar { 
+            display: none !important; 
+        }
+        .card { 
+            border: 1px solid #000 !important; 
+            box-shadow: none !important;
+        }
+        .container-fluid {
+            padding: 0 !important;
+        }
     }
 </style>

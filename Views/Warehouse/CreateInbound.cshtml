@@ -5,18 +5,19 @@
 }
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
 <h2>Tạo Phiếu Nhập Kho</h2>
 
 <form asp-action="CreateInbound" method="post" id="form-create">
     <div class="row">
-        <div class="col-md-4">
+        @* <div class="col-md-4">
             <div class="form-group mb-3">
                 <label asp-for="Date" class="control-label"></label>
                 <input asp-for="Date" class="form-control" />
                 <span asp-validation-for="Date" class="text-danger"></span>
             </div>
-        </div>
+        </div> *@
         <div class="col-md-4">
             <div class="form-group mb-3">
                 <label asp-for="PartnerId" class="control-label"></label>
@@ -95,6 +96,7 @@
 
     <script>
         $(document).ready(function () {
+            $.fn.select2.defaults.set( "theme", "bootstrap-5" );
             // Biến để lưu trữ dữ liệu tải trước
             let initialItemsData = [];
             let initialLocationsData = [];
