@@ -143,7 +143,7 @@ namespace WMS_Demo.Controllers
                 return View(model);
             }
             var emailInUse = await _userManager.Users.AnyAsync(u => u.Email == model.Email);
-            var staffCodeInUse = await _userManager.Users.AnyAsync(u => u.Email == model.Email);
+            var staffCodeInUse = await _userManager.Users.AnyAsync(u => u.StaffCode == model.StaffCode);
             
             if(emailInUse || staffCodeInUse)
             {
