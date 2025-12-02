@@ -18,6 +18,8 @@ namespace WMS_Demo.Controllers
         // Định nghĩa action log để quản lý tập trung
         private const string ACTION_INBOUND = "INBOUND";
         private const string ACTION_INBOUND_REV = "INBOUND_REVERT";
+        private const string ACTION_OUTBOUND = "OUTBOUND";
+        private const string ACTION_OUTBOUND_REV = "OUTBOUND_REVERT";
 
         public WarehouseController(WmsDbContext context)
         {
@@ -83,7 +85,7 @@ namespace WMS_Demo.Controllers
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 var receipt = new InboundReceipt
-                {
+                { 
                     CreatedDate = model.Date,
                     SupplierId = model.PartnerId,
                     Notes = model.Notes,
@@ -278,6 +280,239 @@ namespace WMS_Demo.Controllers
         }
 
         // ==========================================
+        // XUẤT KHO (OUTBOUND)
+        // ==========================================
+
+        public async Task<IActionResult> OutboundIndex(string searchString, int? pageNumber)
+        {
+            ViewData["CurrentFilter"] = searchString;
+
+            var query = _context.OutboundReceipts
+                .Include(x => x.Customer)
+                .Include(x => x.CreatedBy)
+                .AsNoTracking();
+
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                var searchLower = searchString.ToLower();
+                query = query.Where(s => s.Id.ToString().Contains(searchLower) ||
+                                         s.Customer.Name.ToLower().Contains(searchLower) ||
+                                         s.CreatedBy.UserName.ToLower().Contains(searchLower));
+            }
+
+            var outboundViewModel = query.OrderByDescending(i => i.CreatedDate)
+                .Select(x => new ReceiptIndexViewModel
+                {
+                    Id = x.Id,
+                    CreatedDate = x.CreatedDate,
+                    ReferenceCode = "PX-" + x.Id, // Format mã phiếu xuất
+                    PartnerName = x.Customer.Name,
+                    CreatedBy = x.CreatedBy.UserName,
+                    Notes = x.Notes
+                });
+
+            return View("OutboundIndex", await PaginatedList<ReceiptIndexViewModel>.CreateAsync(outboundViewModel, pageNumber ?? 1, PageSize));
+        }
+
+        [HttpGet]
+        public IActionResult CreateOutbound()
+        {
+            var model = new ReceiptCreateViewModel { Date = DateTime.Now };
+            return View("CreateOutbound", model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateOutbound(ReceiptCreateViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Tạo phiếu xuất kho thất bại!";
+                return View("CreateOutbound", model);
+            }
+
+            if (model.Details == null || !model.Details.Any())
+            {
+                TempData["Error"] = "Phiếu xuất kho phải có ít nhất một sản phẩm.";
+                 return View("CreateOutbound", model);
+            }
+
+
+            foreach (var itemDetail in model.Details)
+            {
+                if (itemDetail.Quantity <= 0)
+                {
+                    TempData["Error"] = $"Số lượng xuất của sản phẩm phải lớn hơn 0.";
+                    return View("CreateOutbound", model);
+                }
+                var item = await _context.Items.AsNoTracking().FirstOrDefaultAsync(i => i.Id == itemDetail.ItemId);
+                if (item == null || item.CurrentStock < itemDetail.Quantity)
+                {
+                    TempData["Error"] = $"Không đủ tồn kho cho sản phẩm {item?.Code}. Tồn kho hiện tại: {item?.CurrentStock}, Yêu cầu xuất: {itemDetail.Quantity}";
+                    return View("CreateOutbound", model);
+                }
+            }
+
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var receipt = new OutboundReceipt
+                {
+                    CreatedDate = model.Date,
+                    CustomerId = model.PartnerId, // This is CustomerId for outbound
+                    Notes = model.Notes,
+                    UserId = userId
+                };
+
+                _context.OutboundReceipts.Add(receipt);
+                await _context.SaveChangesAsync();
+
+                foreach (var itemDetail in model.Details)
+                {
+                    var item = await _context.Items.FindAsync(itemDetail.ItemId);
+
+                    if (item.CurrentStock < itemDetail.Quantity)
+                    {
+                        await transaction.RollbackAsync();
+                        TempData["Error"] = $"Tồn kho sản phẩm {item.Code} đã thay đổi. Không thể hoàn tất giao dịch.";
+                        return View("CreateOutbound", model);
+                    }
+
+                    var detail = new OutboundReceiptDetail
+                    {
+                        OutboundReceiptId = receipt.Id,
+                        ItemId = itemDetail.ItemId,
+                        Quantity = itemDetail.Quantity,
+                        LocationId = itemDetail.LocationId,
+                        CostPrice = item.CurrentCost,
+                        SalesPrice=itemDetail.Price
+                    };
+                    _context.OutboundReceiptDetails.Add(detail);
+
+                    // TRỪ tồn kho
+                    item.CurrentStock -= itemDetail.Quantity;
+                    _context.Items.Update(item);
+
+                    // Ghi Log xuất kho
+                    _context.InventoryLogs.Add(new InventoryLog
+                    {
+                        ItemId = item.Id,
+                        ActionType = ACTION_OUTBOUND,
+                        ReferenceId = receipt.Id,
+                        ChangeQuantity = -itemDetail.Quantity, // Ghi số âm
+                        NewStock = item.CurrentStock,
+                        Timestamp = DateTime.Now,
+                        TransactionPrice = item.CurrentCost // Lưu giá vốn tại thời điểm xuất
+                    });
+                }
+
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "Tạo phiếu xuất kho thành công!";
+                return RedirectToAction(nameof(OutboundIndex));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", "Lỗi hệ thống (Transaction Rollbacked): " + ex.Message);
+                return View("CreateOutbound", model);
+            }
+        }
+
+
+        public async Task<IActionResult> OutboundDetails(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var receipt = await _context.OutboundReceipts
+                .Include(r => r.Customer)
+                .Include(r => r.CreatedBy)
+                .Include(r => r.Details).ThenInclude(d => d.Item)
+                .Include(r => r.Details).ThenInclude(d => d.Location)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (receipt == null) return NotFound();
+
+            return View("OutboundDetails", receipt);
+        }
+
+
+        public async Task<IActionResult> DeleteOutbound(int? id)
+        {
+            if (id == null) return NotFound();
+            var receipt = await _context.OutboundReceipts
+                .Include(r => r.Customer)
+                .Include(r => r.CreatedBy)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (receipt == null) return NotFound();
+
+            return View("DeleteOutbound", receipt);
+        }
+
+
+        [HttpPost, ActionName("DeleteOutbound")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteOutboundConfirmed(int id)
+        {
+            using var transaction = _context.Database.BeginTransaction();
+            try
+            {
+                var receipt = await _context.OutboundReceipts
+                    .Include(r => r.Details)
+                    .FirstOrDefaultAsync(r => r.Id == id);
+
+                if (receipt == null)
+                {
+                    TempData["Error"] = "Không tìm thấy phiếu để xóa!";
+                    return RedirectToAction(nameof(OutboundIndex));
+                }
+
+                // Hoàn tác tồn kho
+                foreach (var d in receipt.Details)
+                {
+                    var item = await _context.Items.FindAsync(d.ItemId);
+                    if (item != null)
+                    {
+                        // Hoàn tác (cộng lại) tồn kho
+                        item.CurrentStock += d.Quantity;
+                        _context.Items.Update(item);
+
+                        // Ghi Log hoàn tác (Revert)
+                        _context.InventoryLogs.Add(new InventoryLog
+                        {
+                            ItemId = item.Id,
+                            ActionType = ACTION_OUTBOUND_REV,
+                            ReferenceId = receipt.Id,
+                            ChangeQuantity = d.Quantity, // Số dương thể hiện tăng kho
+                            NewStock = item.CurrentStock,
+                            Timestamp = DateTime.Now,
+                            TransactionPrice = d.CostPrice // Giá tại thời điểm xuất ban đầu
+                        });
+                    }
+                }
+
+                _context.OutboundReceipts.Remove(receipt);
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                TempData["Success"] = "Đã xóa phiếu xuất và hoàn tác tồn kho thành công.";
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                TempData["Error"] = "Lỗi ngoại lệ khi xóa: " + ex.Message;
+            }
+
+            return RedirectToAction(nameof(OutboundIndex));
+        }
+
+
+        // ==========================================
         // KHU VỰC: AJAX API (Phục vụ Search Dropdown Select2)
         // ==========================================
 
@@ -313,7 +548,18 @@ namespace WMS_Demo.Controllers
                 .ToListAsync();
             return Json(data);
         }
+        [HttpGet]
+        public async Task<IActionResult> SearchCustomers(string term)
+        {
+            if (string.IsNullOrEmpty(term)) return Json(new List<object>());
 
+            var data = await _context.Customers.AsNoTracking()
+                .Where(s => s.Name.Contains(term) || s.PhoneNumber.Contains(term))
+                .Select(s => new { id = s.Id, text = s.Name })
+                .Take(20)
+                .ToListAsync();
+            return Json(data);
+        }
         [HttpGet]
         public async Task<IActionResult> SearchLocations(string term)
         {

@@ -33,6 +33,23 @@
                 
                 <div class="small text-uppercase text-muted px-4 pt-4 pb-2">Quản lý Kho</div>
                 
+                <a href="#warehouseSubmenu" data-bs-toggle="collapse" class="list-group-item list-group-item-action list-group-item-dark d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fa-solid fa-right-left me-3"></i>Nhập/Xuất Kho
+                    </div>
+                    <i class="fa-solid fa-chevron-down small"></i>
+                </a>
+                <div class="collapse" id="warehouseSubmenu">
+                    <div class="list-group list-group-flush" style="padding-left: 2rem;">
+                        <a asp-controller="Warehouse" asp-action="InboundIndex" class="list-group-item list-group-item-action list-group-item-dark">
+                            <i class="fa-solid fa-arrow-down me-3 text-success"></i>Phiếu Nhập
+                        </a>
+                        <a asp-controller="Warehouse" asp-action="OutboundIndex" class="list-group-item list-group-item-action list-group-item-dark">
+                            <i class="fa-solid fa-arrow-up me-3 text-danger"></i>Phiếu Xuất
+                        </a>
+                    </div>
+                </div>
+
                 <a asp-controller="Items" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
                     <i class="fa-solid fa-boxes-stacked me-3"></i>Vật tư / Hàng hóa
                 </a>
@@ -54,12 +71,7 @@
                  <a asp-controller="Reports" asp-action="Index" class="list-group-item list-group-item-action list-group-item-dark">
                     <i class="fa-solid fa-chart-pie me-3"></i>Báo cáo
                 </a>
-                 @if (User.IsInRole("Admin"))
-                {
-                    <a asp-controller="Warehouse" asp-action="InboundIndex" class="list-group-item list-group-item-action list-group-item-dark">
-                        <i class="fa-solid fa-users-gear me-3"></i>Nhập kho
-                    </a>
-                }
+
             </div>
         </div>
 
