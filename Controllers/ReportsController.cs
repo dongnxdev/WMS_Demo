@@ -21,19 +21,19 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // GET: InventoryLog (Danh sách lịch sử có phân trang & tìm kiếm)
+        // GET: Lịch sử kho (hỗ trợ lọc, sắp xếp, phân trang).
         public async Task<IActionResult> Index(
-    string sortOrder,
-    string currentFilter,
-    string searchString,
-    string actionType, // <--- Thêm tham số này
-    int? pageNumber)
+            string sortOrder,
+            string currentFilter,
+            string searchString,
+            string actionType,
+            int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
             ViewData["DateSortParm"] = String.IsNullOrEmpty(sortOrder) ? "date_desc" : "";
             ViewData["ItemSortParm"] = sortOrder == "Item" ? "item_desc" : "Item";
 
-            // Lưu lại trạng thái của ActionType để hiển thị lại trên Select2
+            // Giữ lại bộ lọc loại hành động để hiển thị trên view.
             ViewData["CurrentActionType"] = actionType;
 
             if (searchString != null)
@@ -49,7 +49,7 @@ namespace WMS_Demo.Controllers
 
             var logs = _context.InventoryLogs.Include(l => l.Item).AsQueryable();
 
-            // 1. Ưu tiên lọc theo ActionType trước
+            // 1. Lọc theo loại hành động.
             if (!string.IsNullOrEmpty(actionType))
             {
                 if (actionType == "INBOUND")
@@ -62,9 +62,9 @@ namespace WMS_Demo.Controllers
                     var outboundTypes = new[] { "OUTBOUND", "OUTBOUND_REVERT" };
                     logs = logs.Where(l => outboundTypes.Contains(l.ActionType));
                 }
-                }
+            }
 
-            // 2. Sau đó mới tìm kiếm theo từ khóa
+            // 2. Lọc theo từ khóa tìm kiếm.
             if (!String.IsNullOrEmpty(searchString))
             {
                 logs = logs.Where(s => s.Item.Name.Contains(searchString)
@@ -84,14 +84,14 @@ namespace WMS_Demo.Controllers
                     logs = logs.OrderByDescending(s => s.Timestamp);
                     break;
                 default:
-                    logs = logs.OrderByDescending(s => s.Timestamp); // Mặc định cái mới nhất lên đầu
+                    logs = logs.OrderByDescending(s => s.Timestamp); // Mặc định sắp xếp theo thời gian mới nhất.
                     break;
             }
 
             int pageSize = 20;
             return View(await PaginatedList<InventoryLog>.CreateAsync(logs.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
-        // GET: InventoryLog/Details/5
+        // GET: Chi tiết một log lịch sử kho.
         public async Task<IActionResult> Details(long? id)
         {
             if (id == null)
@@ -111,34 +111,34 @@ namespace WMS_Demo.Controllers
             return View(log);
         }
 
-        // GET: InventoryLog/Report (Báo cáo chuyên nghiệp)
+        // GET: Báo cáo tổng hợp tồn kho.
         public async Task<IActionResult> Report(DateTime? fromDate, DateTime? toDate)
         {
-            // Mặc định xem tháng hiện tại nếu không chọn
+            // Mặc định khoảng thời gian là tháng hiện tại.
             var start = fromDate ?? new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             var end = toDate ?? DateTime.Now;
 
-            // 1. Tính tổng giá trị tồn kho hiện tại (Snapshot - không phụ thuộc ngày tháng lọc)
-            // Giá trị kho = Sum(CurrentStock * CurrentCost) từ bảng Item
+            // 1. Tính tổng giá trị tồn kho hiện tại (Snapshot).
+            // Giá trị kho = Sum(Tồn kho * Giá vốn) của tất cả sản phẩm.
             var totalInventoryValue = await _context.Items
                 .SumAsync(i => i.CurrentStock * i.CurrentCost);
 
-            // 2. Lấy dữ liệu Log trong khoảng thời gian để tính Doanh thu & Lợi nhuận
-            // Chỉ quan tâm đến OUTBOUND (Xuất kho bán hàng/sản xuất)
+            // 2. Lấy log xuất kho trong khoảng thời gian để tính toán.
+            // Chỉ xét các giao dịch 'OUTBOUND'.
             var salesLogs = await _context.InventoryLogs
                 .Include(l => l.Item)
                 .Where(l => l.Timestamp >= start && l.Timestamp <= end
                             && l.ActionType == "OUTBOUND")
                 .ToListAsync();
 
-            // Tính toán KPI
-            // Lưu ý: ChangeQuantity trong Outbound thường là số âm, nên ta lấy Abs để tính doanh thu
+            // 3. Tính toán các chỉ số KPI.
+            // Lưu ý: ChangeQuantity của OUTBOUND là số âm.
             decimal totalRevenue = salesLogs.Sum(x => Math.Abs(x.ChangeQuantity) * x.TransactionPrice);
 
-            // Giá vốn (COGS) = Số lượng xuất * Giá vốn bình quân tại thời điểm xuất (MovingAverageCost)
+            // Giá vốn (COGS) được tính dựa trên giá vốn bình quân tại thời điểm xuất.
             decimal totalCOGS = salesLogs.Sum(x => Math.Abs(x.ChangeQuantity) * x.MovingAverageCost);
 
-            // 3. Phân tích Top sản phẩm hiệu quả
+            // 4. Phân tích Top 10 sản phẩm lợi nhuận cao nhất.
             var itemPerformance = salesLogs
                 .GroupBy(x => new { x.ItemId, x.Item.Name, x.Item.Code })
                 .Select(g => new ItemPerformanceMetrics
@@ -149,8 +149,8 @@ namespace WMS_Demo.Controllers
                     Revenue = g.Sum(x => Math.Abs(x.ChangeQuantity) * x.TransactionPrice),
                     Profit = g.Sum(x => (Math.Abs(x.ChangeQuantity) * x.TransactionPrice) - (Math.Abs(x.ChangeQuantity) * x.MovingAverageCost))
                 })
-                .OrderByDescending(x => x.Profit) // Sắp xếp theo lợi nhuận cao nhất
-                .Take(10) // Lấy top 10
+                .OrderByDescending(x => x.Profit) // Sắp xếp theo lợi nhuận giảm dần.
+                .Take(10) // Lấy 10 sản phẩm đầu tiên.
                 .ToList();
 
             var viewModel = new InventoryReportViewModel

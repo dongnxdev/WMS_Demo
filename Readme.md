@@ -1,0 +1,82 @@
+# WMS_DEMO - TÀI LIỆU KỸ THUẬT (SOFTWARE DEVELOPMENT DOCUMENTATION)
+
+**Dự án:** Hệ thống Quản lý Kho (WMS)  
+**Phiên bản:** 1.0.0  
+**Ngày cập nhật:** 03/12/2025  
+**Người thực hiện:** Nguyen Xuan Dong (DongNX Dev)
+
+---
+
+## 1. TỔNG QUAN (OVERVIEW)
+
+Hệ thống được xây dựng nhằm giải quyết bài toán quản lý kho cơ bản tại các nhà máy/xưởng sản xuất quy mô vừa và nhỏ. Tập trung vào tính chính xác của dữ liệu tồn kho theo thời gian thực và vị trí lưu trữ.
+
+### Công nghệ sử dụng (Tech Stack)
+* **Framework:** .NET 8.0 (ASP.NET Core MVC)
+* **Database:** SQL Server
+* **ORM:** Entity Framework Core (Code First)
+* **Authentication:** Microsoft Identity
+* **Frontend:** Razor Views + Bootstrap 5 + jQuery
+
+---
+
+## 2. CẤU TRÚC DỮ LIỆU (DATABASE SCHEMA)
+
+Mô hình dữ liệu được thiết kế tập trung xoay quanh tính toàn vẹn của giao dịch kho.
+
+### 2.1. Master Data (Danh mục)
+* **Items (Vật tư):** Quản lý mã, tên, đơn vị tính.
+    * *Lưu ý:* Trường `CurrentCost` (Giá vốn) và `CurrentStock` (Tồn tổng) được cập nhật tự động qua nghiệp vụ, không sửa tay.
+* **Locations (Vị trí):** Quản lý mã vị trí (Layout kho). // Cần bổ sung bảng nối giữa vật tư và vị trí để rút ngắn hàm xử lý (nếu phát triển thêm)
+* **Partners:** `Suppliers` (Nhà cung cấp), `Customers` (Khách hàng).
+
+### 2.2. Transaction Data (Giao dịch)
+* **InboundReceipts (Nhập kho):**
+    * Header: Ngày nhập, NCC, Người tạo.
+    * Details: `ItemId`, `Quantity`, `UnitPrice`, `LocationId`.
+* **OutboundReceipts (Xuất kho):**
+    * Header: Ngày xuất, Khách hàng, Người tạo.
+    * Details: `ItemId`, `Quantity`, `SalesPrice`, `LocationId`.
+* **InventoryLogs (Nhật ký kho - Audit Trail):**
+    * Lưu vết mọi biến động (+/-) của kho.
+    * Dùng để truy vết (Traceability) và đối soát khi có lệch kho.
+
+---
+
+## 3. QUY TRÌNH NGHIỆP VỤ (BUSINESS LOGIC)
+
+Mọi logic xử lý nằm tập trung tại `WarehouseController.cs`.
+
+### 3.1. Nguyên tắc cốt lõi
+1.  **Transactional Consistency:** Mọi thao tác Nhập/Xuất đều được gói trong `Database Transaction`. Nếu có lỗi bất kỳ -> **Rollback** toàn bộ để tránh lệch data.
+2.  **No Manual Adjustment:** Không cho phép sửa trực tiếp số lượng tồn kho. Phải thông qua phiếu Nhập/Xuất hoặc phiếu Kiểm kê (nếu phát triển thêm).
+
+### 3.2. Nghiệp vụ Nhập kho (Inbound)
+* **Tính giá vốn:** Sử dụng phương pháp **Bình quân gia quyền thời điểm (Moving Average)**.
+    > Công thức: `Giá Mới = [(Giá Cũ * Tồn Cũ) + (Giá Nhập * SL Nhập)] / (Tồn Cũ + SL Nhập)`
+* **Cập nhật tồn kho:** Tăng `CurrentStock` tổng và ghi nhận vị trí lưu trữ.
+
+### 3.3. Nghiệp vụ Xuất kho (Outbound)
+* **Kiểm tra tồn kho (Validation):**
+    1.  Check tồn kho tổng (`Item.CurrentStock`).
+    2.  Check tồn kho theo vị trí (`Location`): Hệ thống tính toán realtime `(Tổng Nhập tại Location - Tổng Xuất tại Location)`. Nếu vị trí đó không đủ hàng -> Chặn xuất.
+* **Ghi nhận giá vốn:** Lưu lại giá vốn (`CostPrice`) tại thời điểm xuất để tính lãi/lỗ chính xác cho từng đơn hàng.
+
+### 3.4. Nghiệp vụ Xóa/Hủy (Revert)
+* **Xóa Phiếu Nhập:** Chỉ cho phép nếu hàng chưa bị xuất đi. Hệ thống sẽ tính toán lại giá vốn ngược chiều (Reverse Calculation) để trả lại giá trị cũ.
+* **Xóa Phiếu Xuất:** Hàng được hoàn trả lại vào kho.
+
+---
+
+## 4. TRIỂN KHAI & CÀI ĐẶT (DEPLOYMENT)
+
+### Yêu cầu hệ thống
+* OS: Windows/Linux Server
+* Runtime: .NET 8.0 Runtime
+* DB: SQL Server 2019+
+
+### Cấu hình (appsettings.json)
+```json
+"ConnectionStrings": {
+  "DefaultConnection": "Server=YOUR_SERVER;Database=WMS_PROD;User Id=sa;Password=..."
+}

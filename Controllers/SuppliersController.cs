@@ -23,7 +23,7 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // GET: Lấy danh sách tất cả các nhà cung cấp.
+        // GET: Lấy danh sách nhà cung cấp.
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
@@ -42,7 +42,7 @@ namespace WMS_Demo.Controllers
             return View(await PaginatedList<Supplier>.CreateAsync(suppliers, pageNumber ?? 1, DefaultPageSize));
         }
 
-        // GET: Lấy thông tin chi tiết của một nhà cung cấp cụ thể.
+        // GET: Lấy chi tiết thông tin nhà cung cấp.
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -60,13 +60,13 @@ namespace WMS_Demo.Controllers
             return View(supplier);
         }
 
-        // GET: Hiển thị form để tạo mới một nhà cung cấp.
+        // GET: Hiển thị form tạo mới nhà cung cấp.
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Xử lý việc tạo mới một nhà cung cấp.
+        // POST: Xử lý tạo mới nhà cung cấp.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Address,PhoneNumber")] Supplier supplier)
@@ -81,7 +81,7 @@ namespace WMS_Demo.Controllers
                     TempData["Success"] = $"Thêm mới thành công: {supplier.Name}";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Thêm mới thất bại: {supplier.Name}";
                 }
@@ -89,7 +89,7 @@ namespace WMS_Demo.Controllers
             return View(supplier);
         }
 
-        // GET: Hiển thị form để chỉnh sửa một nhà cung cấp đã có.
+        // GET: Hiển thị form chỉnh sửa nhà cung cấp.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -105,7 +105,7 @@ namespace WMS_Demo.Controllers
             return View(supplier);
         }
 
-        // POST: Xử lý việc cập nhật một nhà cung cấp đã có.
+        // POST: Xử lý cập nhật nhà cung cấp.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,PhoneNumber")] Supplier supplier)
@@ -131,7 +131,7 @@ namespace WMS_Demo.Controllers
                     if (!SupplierExists(supplier.Id)) return NotFound();
                     else throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Cập nhật thất bại: {supplier.Name}";
                 }
@@ -139,7 +139,7 @@ namespace WMS_Demo.Controllers
             return View(supplier);
         }
 
-        // GET: Hiển thị trang xác nhận xóa một nhà cung cấp.
+        // GET: Hiển thị trang xác nhận xóa nhà cung cấp.
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -151,7 +151,7 @@ namespace WMS_Demo.Controllers
             return View(supplier);
         }
 
-        // POST: Xử lý việc xóa một nhà cung cấp.
+        // POST: Xử lý xóa nhà cung cấp.
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)

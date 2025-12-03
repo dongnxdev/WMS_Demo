@@ -15,7 +15,7 @@ namespace WMS_Demo.Controllers
         private readonly WmsDbContext _context;
         private const int PageSize = 10;
 
-        // Định nghĩa action log để quản lý tập trung
+        // Định nghĩa hằng số cho các loại hành động ghi log.
         private const string ACTION_INBOUND = "INBOUND";
         private const string ACTION_INBOUND_REV = "INBOUND_REVERT";
         private const string ACTION_OUTBOUND = "OUTBOUND";
@@ -27,14 +27,14 @@ namespace WMS_Demo.Controllers
         }
 
         // ==========================================
-        #region NHẬP KHO (INBOUND)
+        #region Nhập kho (Inbound)
         // ==========================================
 
         public async Task<IActionResult> InboundIndex(string searchString, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
 
-            // Bắt đầu câu truy vấn với Include để tải dữ liệu liên quan
+            // Truy vấn phiếu nhập, tải kèm thông tin Nhà cung cấp và Người tạo.
             var query = _context.InboundReceipts
                 .Include(x => x.Supplier)
                 .Include(x => x.CreatedBy)
@@ -43,7 +43,7 @@ namespace WMS_Demo.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 var searchLower = searchString.ToLower();
-                // Tìm kiếm trên các trường liên quan
+                // Lọc theo mã phiếu, tên nhà cung cấp, hoặc tên người tạo.
                 query = query.Where(s => s.Id.ToString().Contains(searchLower) ||
                                          s.Supplier.Name.ToLower().Contains(searchLower) ||
                                          s.CreatedBy.UserName.ToLower().Contains(searchLower));
@@ -54,7 +54,7 @@ namespace WMS_Demo.Controllers
                 {
                     Id = x.Id,
                     CreatedDate = x.CreatedDate,
-                    ReferenceCode = "PN-" + x.Id, // Format mã phiếu nhập
+                    ReferenceCode = "PN-" + x.Id, // Định dạng mã phiếu nhập.
                     PartnerName = x.Supplier.Name,
                     CreatedBy = x.CreatedBy.UserName,
                     Notes = x.Notes
@@ -86,7 +86,7 @@ namespace WMS_Demo.Controllers
 
                 var receipt = new InboundReceipt
                 {
-                     CreatedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 
+                     CreatedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
                                              DateTime.Now.Hour, DateTime.Now.Minute, 0),
                     SupplierId = model.PartnerId,
                     Notes = model.Notes,
@@ -115,14 +115,12 @@ namespace WMS_Demo.Controllers
                         var item = await _context.Items.FindAsync(itemDetail.ItemId);
                         if (item != null)
                         {
-                            // Cộng tồn kho
-                            // Tính toán giá vốn mới
+                            // Cập nhật tồn kho và tính lại giá vốn trung bình.
                             decimal currentTotalValue = item.CurrentCost * item.CurrentStock;
                             decimal newInboundValue = itemDetail.Quantity * itemDetail.Price;
                             decimal newTotalStock = item.CurrentStock + itemDetail.Quantity;
 
-                            // Cập nhật giá vốn (Làm tròn 2 số lẻ)
-                            // Formula: (Giá cũ * Tồn cũ + Giá nhập * SL nhập) / Tổng tồn mới
+                            // Công thức: (Giá trị tồn hiện tại + Giá trị nhập) / Tổng tồn mới.
                             if (newTotalStock > 0)
                             {
                                 item.CurrentCost = Math.Round((currentTotalValue + newInboundValue) / newTotalStock, 2);
@@ -131,7 +129,7 @@ namespace WMS_Demo.Controllers
                             item.CurrentStock = newTotalStock;
                             _context.Items.Update(item);
 
-                            // Ghi Log đầy đủ
+                            // Ghi log nghiệp vụ nhập kho.
                             _context.InventoryLogs.Add(new InventoryLog
                             {
                                 ItemId = item.Id,
@@ -140,7 +138,7 @@ namespace WMS_Demo.Controllers
                                 ChangeQuantity = itemDetail.Quantity,
                                 NewStock = item.CurrentStock,
                                 Timestamp = DateTime.Now,
-                                TransactionPrice = itemDetail.Price // Lưu giá vốn tại thời điểm nhập
+                                TransactionPrice = itemDetail.Price // Lưu giá tại thời điểm giao dịch.
                             });
                         }
                     }
@@ -155,7 +153,7 @@ namespace WMS_Demo.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                // Log error ra file hoặc console để debug
+                // Ghi log lỗi và rollback giao dịch.
                 ModelState.AddModelError("", "Lỗi hệ thống (Transaction Rollbacked): " + ex.Message);
                 return View(model);
             }
@@ -177,14 +175,14 @@ namespace WMS_Demo.Controllers
             return View(receipt);
         }
 
-        // GET: Delete Inbound - Chỉ hiển thị form xác nhận
+        // GET: Hiển thị form xác nhận xóa phiếu nhập.
         public async Task<IActionResult> DeleteInbound(int? id)
         {
             if (id == null) return NotFound();
             var receipt = await _context.InboundReceipts
                 .Include(r => r.Supplier)
                 .Include(r => r.CreatedBy)
-                .Include(r => r.Details) // Cần load details để hiển thị cảnh báo nếu cần
+                .Include(r => r.Details) // Tải chi tiết phiếu để kiểm tra.
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (receipt == null) return NotFound();
@@ -198,7 +196,7 @@ namespace WMS_Demo.Controllers
             using var transaction = _context.Database.BeginTransaction();
             try
             {
-                // Eager loading Details và Item để check tồn kho
+                // Tải chi tiết phiếu để xử lý hoàn kho.
                 var receipt = await _context.InboundReceipts
                     .Include(r => r.Details)
                     .FirstOrDefaultAsync(r => r.Id == id);
@@ -209,7 +207,7 @@ namespace WMS_Demo.Controllers
                     return RedirectToAction(nameof(InboundIndex));
                 }
 
-                // Check tồn kho trước khi xóa
+                // Kiểm tra điều kiện hoàn kho.
                 foreach (var d in receipt.Details)
                 {
                     var itemCheck = await _context.Items.AsNoTracking()
@@ -217,17 +215,16 @@ namespace WMS_Demo.Controllers
 
                     if (itemCheck == null) continue;
 
+                    // Không cho phép xóa phiếu nhập nếu số lượng tồn kho không đủ để hoàn tác.
                     if (itemCheck.CurrentStock < d.Quantity)
                     {
-                        // Hàng đã bị xuất đi rồi -> CẤM XÓA PHIẾU NHẬP
-
                         await transaction.RollbackAsync();
                         TempData["Error"] = $"CẢNH BÁO: Sản phẩm {itemCheck.Code} hiện chỉ còn tồn {itemCheck.CurrentStock}, không đủ để hoàn tác {d.Quantity}. Vui lòng kiểm tra lại!";
                         return RedirectToAction(nameof(InboundIndex));
                     }
                 }
 
-                // Nếu check OK hết thì mới bắt đầu trừ kho thật
+                // Hoàn tác số lượng và tính lại giá vốn cho từng sản phẩm.
                 foreach (var d in receipt.Details)
                 {
                     var item = await _context.Items.FindAsync(d.ItemId);
@@ -239,26 +236,26 @@ namespace WMS_Demo.Controllers
 
                         if (newStock > 0)
                         {
-                            // Tính lại giá vốn sau khi loại bỏ phiếu nhập này
-                            // Có thể ra số ÂM nếu dữ liệu lịch sử bị sai lệch nhiều, nhưng về mặt toán học là đúng hành vi
+                            // Tính lại giá vốn sau khi hoàn tác.
+                            // Lưu ý: Giá vốn có thể âm nếu lịch sử dữ liệu không nhất quán.
                             item.CurrentCost = Math.Round((currentTotalValue - valueToRevert) / newStock, 2);
                         }
                         else
                         {
-                            // Nếu kho về 0, reset giá vốn về 0 cho đẹp đội hình
-                            item.CurrentCost = 1;
+                            // Nếu tồn kho về 0, đặt lại giá vốn.
+                            item.CurrentCost = 0;
                         }
 
                         item.CurrentStock = newStock;
                         _context.Items.Update(item);
 
-                        // Ghi Log hoàn tác (Revert)
+                        // Ghi log nghiệp vụ hoàn tác nhập kho.
                         _context.InventoryLogs.Add(new InventoryLog
                         {
                             ItemId = item.Id,
                             ActionType = ACTION_INBOUND_REV,
                             ReferenceId = receipt.Id,
-                            ChangeQuantity = -d.Quantity, // Số âm thể hiện giảm kho
+                            ChangeQuantity = -d.Quantity, // Ghi nhận số lượng giảm.
                             NewStock = item.CurrentStock,
                             Timestamp = DateTime.Now,
                             TransactionPrice = d.UnitPrice
@@ -281,7 +278,7 @@ namespace WMS_Demo.Controllers
         }
         #endregion
         // ==========================================
-        #region  XUẤT KHO (OUTBOUND)
+        #region Xuất kho (Outbound)
         // ==========================================
 
         public async Task<IActionResult> OutboundIndex(string searchString, int? pageNumber)
@@ -306,7 +303,7 @@ namespace WMS_Demo.Controllers
                 {
                     Id = x.Id,
                     CreatedDate = x.CreatedDate,
-                    ReferenceCode = "PX-" + x.Id, // Format mã phiếu xuất
+                    ReferenceCode = "PX-" + x.Id, // Định dạng mã phiếu xuất.
                     PartnerName = x.Customer.Name,
                     CreatedBy = x.CreatedBy.UserName,
                     Notes = x.Notes
@@ -326,7 +323,7 @@ namespace WMS_Demo.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateOutbound(ReceiptCreateViewModel model)
         {
-            // 1. Validation cơ bản
+            // 1. Kiểm tra tính hợp lệ của model.
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Dữ liệu không hợp lệ, vui lòng kiểm tra lại!";
@@ -339,7 +336,7 @@ namespace WMS_Demo.Controllers
                 return View("CreateOutbound", model);
             }
 
-            // 2. Kiểm tra sơ bộ (Pre-check) trước khi mở Transaction để đỡ tốn tài nguyên DB
+            // 2. Kiểm tra sơ bộ dữ liệu đầu vào.
             foreach (var itemDetail in model.Details)
             {
                 if (itemDetail.Quantity <= 0)
@@ -349,18 +346,17 @@ namespace WMS_Demo.Controllers
                 }
             }
 
-            // 3. Mở Transaction 
+            // 3. Bắt đầu giao dịch cơ sở dữ liệu.
             using var transaction = _context.Database.BeginTransaction();
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                // Tạo Header phiếu xuất
+                // Tạo thông tin chính của phiếu xuất.
                 var receipt = new OutboundReceipt
                 {
-                    // Luôn lấy thời gian hiện tại của server và làm tròn đến phút
-                    // để khớp với định dạng yyyy-MM-ddTHH:mm
-                    CreatedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 
+                    // Chuẩn hóa thời gian tạo (tương thích với định dạng input datetime-local).
+                    CreatedDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
                                              DateTime.Now.Hour, DateTime.Now.Minute, 0),
                     CustomerId = model.PartnerId,
                     Notes = model.Notes,
@@ -368,12 +364,11 @@ namespace WMS_Demo.Controllers
                 };
 
                 _context.OutboundReceipts.Add(receipt);
-                await _context.SaveChangesAsync(); // Save để lấy ID phiếu
+                await _context.SaveChangesAsync(); // Lưu để lấy ID cho các chi tiết.
 
-                // Xử lý từng chi tiết (Details)
+                // Xử lý từng dòng chi tiết của phiếu xuất.
                 foreach (var itemDetail in model.Details)
                 {
-                    
                     var item = await _context.Items.FindAsync(itemDetail.ItemId);
 
                     if (item == null)
@@ -383,7 +378,7 @@ namespace WMS_Demo.Controllers
                         return View("CreateOutbound", model);
                     }
 
-                    // CHECK 1: Tồn kho tổng (Global Stock)
+                    // Kiểm tra tồn kho tổng của sản phẩm.
                     if (item.CurrentStock < itemDetail.Quantity)
                     {
                         await transaction.RollbackAsync();
@@ -391,13 +386,13 @@ namespace WMS_Demo.Controllers
                         return View("CreateOutbound", model);
                     }
 
-                    // CHECK 2: Tồn kho tại Vị Trí (Location Stock) - CỰC KỲ QUAN TRỌNG
+                    // Kiểm tra tồn kho tại vị trí xuất.
                     decimal stockAtLocation = await GetStockAtLocationAsync(itemDetail.ItemId, itemDetail.LocationId);
 
                     if (stockAtLocation < itemDetail.Quantity)
                     {
                         await transaction.RollbackAsync();
-                        // Lấy tên vị trí để báo lỗi cho user
+                        // Lấy mã vị trí để hiển thị lỗi.
                         var locCode = await _context.Locations
                             .Where(l => l.Id == itemDetail.LocationId)
                             .Select(l => l.Code)
@@ -413,16 +408,16 @@ namespace WMS_Demo.Controllers
                         ItemId = itemDetail.ItemId,
                         Quantity = itemDetail.Quantity,
                         LocationId = itemDetail.LocationId,
-                        CostPrice = item.CurrentCost, // Giá vốn xuất
-                        SalesPrice = itemDetail.Price // Giá bán
+                        CostPrice = item.CurrentCost, // Ghi nhận giá vốn tại thời điểm xuất.
+                        SalesPrice = itemDetail.Price // Ghi nhận giá bán.
                     };
                     _context.OutboundReceiptDetails.Add(detail);
 
-                    // TRỪ tồn kho tổng
+                    // Cập nhật lại tồn kho tổng.
                     item.CurrentStock -= itemDetail.Quantity;
                     _context.Items.Update(item);
 
-                    // Ghi Log xuất kho
+                    // Ghi log nghiệp vụ xuất kho.
                     _context.InventoryLogs.Add(new InventoryLog
                     {
                         ItemId = item.Id,
@@ -444,7 +439,7 @@ namespace WMS_Demo.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                // Log ex ra file log thật nếu có
+                // Ghi log lỗi và rollback giao dịch.
                 ModelState.AddModelError("", "Lỗi hệ thống (Transaction Rollbacked): " + ex.Message);
                 return View("CreateOutbound", model);
             }
@@ -498,26 +493,26 @@ namespace WMS_Demo.Controllers
                     return RedirectToAction(nameof(OutboundIndex));
                 }
 
-                // Hoàn tác tồn kho
+                // Bắt đầu quá trình hoàn tác tồn kho.
                 foreach (var d in receipt.Details)
                 {
                     var item = await _context.Items.FindAsync(d.ItemId);
                     if (item != null)
                     {
-                        // Hoàn tác (cộng lại) tồn kho
+                        // Cập nhật lại tồn kho.
                         item.CurrentStock += d.Quantity;
                         _context.Items.Update(item);
 
-                        // Ghi Log hoàn tác (Revert)
+                        // Ghi log nghiệp vụ hoàn tác xuất kho.
                         _context.InventoryLogs.Add(new InventoryLog
                         {
                             ItemId = item.Id,
                             ActionType = ACTION_OUTBOUND_REV,
                             ReferenceId = receipt.Id,
-                            ChangeQuantity = d.Quantity, // Số dương thể hiện tăng kho
+                            ChangeQuantity = d.Quantity, // Ghi nhận số lượng tăng.
                             NewStock = item.CurrentStock,
                             Timestamp = DateTime.Now,
-                            TransactionPrice = d.CostPrice // Giá tại thời điểm xuất ban đầu
+                            TransactionPrice = d.CostPrice // Sử dụng lại giá vốn tại thời điểm xuất ban đầu.
                         });
                     }
                 }
@@ -539,7 +534,7 @@ namespace WMS_Demo.Controllers
 
         #endregion
         // ==========================================
-        #region  KHU VỰC: AJAX API (Phục vụ Search Dropdown Select2)
+        #region API (Ajax)
         // ==========================================
 
         [HttpGet]
@@ -598,42 +593,42 @@ namespace WMS_Demo.Controllers
                 .ToListAsync();
             return Json(data);
         }
-        //TODO LIST: TẠO BẢNG NỐI ITEM-LOCATION ĐỂ QUẢN LÝ TỒN THEO VỊ TRÍ BỎ CODe DƯỚI
+        // TODO: Chuyển sang bảng tồn kho nối theo vị trí (ItemLocationStock) để tối ưu hiệu năng.
         public async Task<IActionResult> GetLocationsForItem(int itemId)
         {
-            // 1. Lấy tất cả phiếu nhập của Item này, group theo Location
+            // 1. Tổng hợp số lượng nhập theo từng vị trí.
             var inbound = await _context.InboundReceiptDetails
                 .Where(x => x.ItemId == itemId)
                 .GroupBy(x => x.LocationId)
                 .Select(g => new { LocationId = g.Key, Qty = g.Sum(x => x.Quantity) })
                 .ToListAsync();
 
-            // 2. Lấy tất cả phiếu xuất của Item này, group theo Location
+            // 2. Tổng hợp số lượng xuất theo từng vị trí.
             var outbound = await _context.OutboundReceiptDetails
                 .Where(x => x.ItemId == itemId)
                 .GroupBy(x => x.LocationId)
                 .Select(g => new { LocationId = g.Key, Qty = g.Sum(x => x.Quantity) })
                 .ToListAsync();
 
-            // 3. Join lại để tính tồn kho thực tế (Tồn = Nhập - Xuất)
+            // 3. Tính tồn kho thực tế tại mỗi vị trí.
             var locationStocks = from i in inbound
                                  join o in outbound on i.LocationId equals o.LocationId into joined
                                  from o in joined.DefaultIfEmpty()
                                  let outQty = o?.Qty ?? 0
                                  let stock = i.Qty - outQty
-                                 where stock > 0 // Chỉ lấy vị trí còn hàng
+                                 where stock > 0 // Lọc các vị trí có tồn kho.
                                  select new { i.LocationId, Stock = stock };
 
-            // 4. Lấy thêm thông tin tên/code của Location để hiển thị
+            // 4. Lấy thông tin chi tiết của các vị trí hợp lệ.
             var locationIds = locationStocks.Select(x => x.LocationId).ToList();
             var locations = await _context.Locations
                 .Where(x => locationIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id, x => x.Code); // Dictionary cho nhanh
+                .ToDictionaryAsync(x => x.Id, x => x.Code); // Dùng Dictionary để tra cứu nhanh.
 
             var result = locationStocks.Select(x => new
             {
                 id = x.LocationId,
-                text = $"{locations[x.LocationId]} (Sẵn: {x.Stock})", // Hiển thị: Kệ A-01 (Sẵn: 50)
+                text = $"{locations[x.LocationId]} (Sẵn: {x.Stock})", // Định dạng hiển thị cho dropdown.
                 stock = x.Stock
             }).ToList();
 
@@ -641,17 +636,17 @@ namespace WMS_Demo.Controllers
         }
         private async Task<decimal> GetStockAtLocationAsync(int itemId, int locationId)
         {
-            // 1. Tổng nhập vào vị trí này
+            // Tính tổng số lượng đã nhập vào vị trí.
             var totalInbound = await _context.InboundReceiptDetails
                 .Where(x => x.ItemId == itemId && x.LocationId == locationId)
                 .SumAsync(x => x.Quantity);
 
-            // 2. Tổng xuất từ vị trí này
+            // Tính tổng số lượng đã xuất từ vị trí.
             var totalOutbound = await _context.OutboundReceiptDetails
                 .Where(x => x.ItemId == itemId && x.LocationId == locationId)
                 .SumAsync(x => x.Quantity);
 
-            // Tồn hiện tại = Nhập - Xuất
+            // Tồn kho hiện tại = Tổng nhập - Tổng xuất.
             return totalInbound - totalOutbound;
         }
         #endregion

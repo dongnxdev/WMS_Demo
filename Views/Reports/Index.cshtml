@@ -12,14 +12,14 @@
 <style>
     /* Chỉnh lại style Select2 cho khớp với Bootstrap */
     .select2-container .select2-selection--single {
-        height: 38px;
+        height: 31.25px;
         border: 1px solid #ced4da;
     }
     .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 36px;
+        line-height: 31.25px;
     }
     .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 36px;
+        height: 31.25px;
     }
 </style>
 
@@ -41,16 +41,17 @@
                 </select>
             </div>
 
-            <div class="col-md-7">
+            <div class="col-md-6">
                 <label class="form-label fw-bold">Tìm kiếm</label>
                 <div class="input-group">
                     <input type="text" name="SearchString" class="form-control" placeholder="Tìm theo mã hàng, tên hàng..." value="@ViewData["CurrentFilter"]" />
-                    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Tìm</button>
+                    <button class="btn btn-dark btn-industrial" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
                 </div>
             </div>
 
-            <div class="col-md-2 d-flex align-items-end">
-                <a asp-action="Index" class="btn btn-secondary w-100">Đặt lại</a>
+            <div class="col-md-3">
+                <label class="form-label fw-bold invisible">Hành động</label>
+                <a asp-action="Index" class="btn btn-secondary w-100">Đặt lại bộ lọc</a>
             </div>
         </form>
     </div>

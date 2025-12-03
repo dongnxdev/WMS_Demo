@@ -8,7 +8,7 @@ using WMS_Demo.Data;
 
 namespace WMS_Demo.Controllers
 {
-    [Authorize] // Phải đăng nhập mới được vào controller này
+    [Authorize] // Yêu cầu xác thực cho toàn bộ controller.
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -19,9 +19,9 @@ namespace WMS_Demo.Controllers
 
         private const int DefaultPageSize = 10;
 
-        // Inject mấy cái service của Identity vào để sai bảo
+        // Khởi tạo các dịch vụ quản lý người dùng và vai trò từ ASP.NET Core Identity.
         public AccountController(
-            UserManager<ApplicationUser> userManager, 
+            UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
             WmsDbContext context
@@ -33,10 +33,10 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // --- PHẦN LOGIN / LOGOUT ---
+        //--- Login / Logout ---
 
         [HttpGet]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public IActionResult Login()
         {
             if (_signInManager.IsSignedIn(User))
@@ -57,9 +57,9 @@ namespace WMS_Demo.Controllers
                 return View();
             }
 
-            // Thực hiện đăng nhập, lockoutOnFailure: false để đỡ bị khóa khi nhập sai nhiều
+            // Thực hiện đăng nhập. `lockoutOnFailure: false` để không khóa tài khoản khi đăng nhập sai.
             var result = await _signInManager.PasswordSignInAsync(email, password, rememberMe, lockoutOnFailure: false);
-            
+
             if (result.Succeeded)
             {
                 return RedirectToAction("Index", "Home");
@@ -76,10 +76,10 @@ namespace WMS_Demo.Controllers
             return RedirectToAction("Login");
         }
 
-        // --- PHẦN QUẢN LÝ NHÂN VIÊN (CRUD) ---
+        //--- Quản lý Nhân viên ---
 
-        // GET: Danh sách nhân viên
-        [Authorize(Roles = "Admin")] 
+        // GET: Lấy danh sách nhân viên (hỗ trợ tìm kiếm và phân trang).
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
@@ -89,7 +89,7 @@ namespace WMS_Demo.Controllers
             if (!string.IsNullOrEmpty(searchString))
             {
                 var searchLower = searchString.ToLower();
-                users = users.Where(u => u.UserName.ToLower().Contains(searchLower) || 
+                users = users.Where(u => u.UserName.ToLower().Contains(searchLower) ||
                                          u.Email.ToLower().Contains(searchLower) ||
                                          u.FullName.ToLower().Contains(searchLower) ||
                                          u.StaffCode.ToLower().Contains(searchLower));
@@ -100,38 +100,36 @@ namespace WMS_Demo.Controllers
             return View(await PaginatedList<ApplicationUser>.CreateAsync(users, pageNumber ?? 1, DefaultPageSize));
         }
 
-        // GET: Tạo mới nhân viên
+        // GET: Hiển thị form tạo mới nhân viên.
         [Authorize(Roles = "Admin")]
         public IActionResult Create() => View();
 
-        // GET: Xem chi tiết nhân viên
-        // [Authorize(Roles = "Admin")] // Gỡ bỏ attribute này để xử lý logic bên trong
+        // GET: Xem chi tiết thông tin nhân viên.
+        // Phân quyền được xử lý bên trong action thay vì dùng attribute.
         public async Task<IActionResult> Details(string id)
         {
             if (id == null) return NotFound();
 
-            // --- Logic phân quyền ---
-            // Lấy ID của người dùng đang đăng nhập
-            var currentUserId = _userManager.GetUserId(User);
-            // Kiểm tra xem có phải là Admin không
-            var isAdmin = User.IsInRole("Admin");
+            // Logic phân quyền: Admin có thể xem mọi hồ sơ, người dùng chỉ có thể xem hồ sơ của chính mình.
+            var currentUserId = _userManager.GetUserId(User); // Lấy ID người dùng hiện tại.
+            var isAdmin = User.IsInRole("Admin"); // Kiểm tra vai trò Admin.
 
-            // Nếu không phải Admin và cũng không phải đang xem hồ sơ của chính mình -> Cấm
+            // Nếu không phải Admin và không xem hồ sơ của chính mình, từ chối truy cập.
             if (!isAdmin && currentUserId != id)
             {
-                return Forbid(); // Trả về lỗi 403 Forbidden
+                return Forbid(); // Trả về kết quả 403 Forbidden.
             }
 
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return NotFound();
 
-            // Lấy thêm Role để hiển thị 
+            // Lấy vai trò của người dùng để hiển thị.
             var roles = await _userManager.GetRolesAsync(user);
             ViewData["Role"] = roles.FirstOrDefault() ?? "Không có";
 
             return View(user);
         }
-        // POST: Tạo mới nhân viên
+        // POST: Xử lý tạo mới nhân viên.
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
@@ -144,15 +142,15 @@ namespace WMS_Demo.Controllers
             }
             var emailInUse = await _userManager.Users.AnyAsync(u => u.Email == model.Email);
             var staffCodeInUse = await _userManager.Users.AnyAsync(u => u.StaffCode == model.StaffCode);
-            
+
             if(emailInUse || staffCodeInUse)
             {
                 ModelState.AddModelError("", "Email / Mã nhân viên này đã có người dùng rồi.");
                 return View(model);
             }
-            var user = new ApplicationUser 
-            { 
-                UserName = model.Email, // Mặc định lấy email làm username cho dễ nhớ
+            var user = new ApplicationUser
+            {
+                UserName = model.Email, // Mặc định sử dụng Email làm UserName.
                 Email = model.Email,
                 FullName = model.FullName,
                 StaffCode = model.StaffCode,
@@ -163,12 +161,12 @@ namespace WMS_Demo.Controllers
 
             if (result.Succeeded)
             {
-                // Nếu role chưa có thì tạo (đề phòng)
+                // Đảm bảo vai trò (role) tồn tại trước khi gán.
                 if (!await _roleManager.RoleExistsAsync(role))
                 {
                     await _roleManager.CreateAsync(new IdentityRole(role));
                 }
-                
+
                 await _userManager.AddToRoleAsync(user, role);
                 TempData["Success"] = $"Thêm mới thành công nhân sự: {user.FullName}";
                 return RedirectToAction(nameof(Index));
@@ -181,7 +179,7 @@ namespace WMS_Demo.Controllers
             return View(model);
         }
 
-        // GET: Sửa nhân viên
+        // GET: Hiển thị form chỉnh sửa thông tin nhân viên.
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(string id)
         {
@@ -193,7 +191,7 @@ namespace WMS_Demo.Controllers
             return View(user);
         }
 
-        // POST: Sửa nhân viên
+        // POST: Xử lý cập nhật thông tin nhân viên.
         [HttpPost]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
@@ -211,13 +209,13 @@ namespace WMS_Demo.Controllers
                 ModelState.AddModelError("", "Mã nhân viên này đã có người dùng rồi.");
                 return View(model);
             }
-           
+
             // Cập nhật thông tin
             user.FullName = model.FullName;
             user.IsActive = model.IsActive;
             user.StaffCode = model.StaffCode;
-            // Không cho sửa Email/Username ở đây cho đỡ rắc rối logic,
-            
+            // Không cho phép chỉnh sửa Email/Username để đơn giản hóa logic.
+
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
@@ -234,7 +232,7 @@ namespace WMS_Demo.Controllers
             return View(model);
         }
 
-        // GET: Xóa nhân viên (Xác nhận)
+        // GET: Hiển thị form xác nhận xóa nhân viên.
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(string id)
         {
@@ -244,7 +242,7 @@ namespace WMS_Demo.Controllers
             return View(user);
         }
 
-        // POST: Xóa nhân viên thật sự
+        // POST: Xử lý xóa nhân viên.
         [HttpPost, ActionName("Delete")]
         [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
@@ -253,7 +251,7 @@ namespace WMS_Demo.Controllers
             var user = await _userManager.FindByIdAsync(id);
             if (user == null) return RedirectToAction(nameof(Index));
 
-            // Logic chặn xóa chính mình để tránh việc Admin xóa mình khỏi hệ thống
+            // Ngăn người dùng tự xóa tài khoản của chính mình.
             if (User.Identity.Name == user.UserName)
             {
                 TempData["Error"] = "Không thể tự xóa chính mình";
@@ -270,11 +268,11 @@ namespace WMS_Demo.Controllers
             {
                 TempData["Success"] = $"Đã xóa nhân sự: {user.FullName}";
             }
-            else 
+            else
             {
                 TempData["Error"] = "Lỗi khi xóa";
             }
-            
+
             return RedirectToAction(nameof(Index));
         }
     }

@@ -22,13 +22,13 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // GET: Items
+        // GET: Lấy danh sách vật tư.
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
-            // Giữ lại giá trị search để hiển thị lại trên View
+            // Lưu lại bộ lọc tìm kiếm để hiển thị trên view.
             ViewData["CurrentFilter"] = searchString;
 
-            var items = _context.Items.AsNoTracking(); // Tối ưu hóa: Chỉ đọc, không theo dõi thay đổi
+            var items = _context.Items.AsNoTracking(); // Tối ưu hiệu năng: không theo dõi thay đổi của đối tượng.
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -43,7 +43,7 @@ namespace WMS_Demo.Controllers
             return View(await PaginatedList<Item>.CreateAsync(items, pageNumber ?? 1, DefaultPageSize));
         }
 
-        // GET: Items/Details/5
+        // GET: Lấy chi tiết thông tin vật tư.
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -56,22 +56,22 @@ namespace WMS_Demo.Controllers
             return View(item);
         }
 
-        // GET: Items/Create
+        // GET: Hiển thị form tạo mới vật tư.
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Items/Create
+        // POST: Xử lý tạo mới vật tư.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Code,Unit,SafetyStock,CurrentStock")] Item item)
         {
-            // 1. Check trùng Code thủ công trước khi check ModelState
+            // Kiểm tra trùng mã vật tư trước khi xác thực model.
             var codeSKU=item.Code?.Trim();
             if (await _context.Items.AnyAsync(i => i.Code == item.Code))
             {
-                // Thêm lỗi vào ModelState 
+                // Thêm lỗi vào ModelState nếu mã đã tồn tại.
                 ModelState.AddModelError("Code", "Mã vật tư này đã tồn tại.");
             }
 
@@ -79,23 +79,22 @@ namespace WMS_Demo.Controllers
             {
                 try
                 {
-                    item.CurrentStock = 0; // Mặc định tồn kho ban đầu là 0 khi tạo mới
+                    item.CurrentStock = 0; // Tồn kho ban đầu của vật tư mới luôn là 0.
                     _context.Add(item);
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Thêm mới thành công: {item.Name}";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Thêm mới thất bại: {item.Name}";
-                    // ModelState.AddModelError("", $"Lỗi hệ thống: {ex.Message}");
                 }
             }
-            // Nếu lỗi, trả về View cùng dữ liệu đã nhập để user không phải nhập lại
+            // Nếu có lỗi, trả về view với dữ liệu đã nhập.
             return View(item);
         }
 
-        // GET: Items/Edit/5
+        // GET: Hiển thị form chỉnh sửa vật tư.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -104,7 +103,7 @@ namespace WMS_Demo.Controllers
             return View(item);
         }
 
-        // POST: Items/Edit/5
+        // POST: Xử lý cập nhật vật tư.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Unit,Code,SafetyStock")] Item item)
@@ -112,27 +111,21 @@ namespace WMS_Demo.Controllers
 
             if (id != item.Id) return NotFound();
 
-            // // Check trùng code khi sửa (ngoại trừ chính nó) // Sửa đổi không cho đổi code sku
-            // var duplicateCode = await _context.Items.AnyAsync(i => i.Code == item.Code && i.Id != id);
-            // if (duplicateCode)
-            // {
-            //     ModelState.AddModelError("Code", "Mã vật tư đã được sử dụng bởi sản phẩm khác.");
-            // }
+            // Ghi chú: Mã vật tư (SKU) không được phép thay đổi sau khi tạo.
             if (ModelState.IsValid)
             {
 
                 try
                 {
-                    // Lấy thằng cũ lên để update an toàn
+                    // Lấy đối tượng gốc từ database để cập nhật.
                     var existingItem = await _context.Items.FindAsync(id);
                     if (existingItem == null) return NotFound();
 
-                    // Update từng trường 
+                    // Cập nhật các thuộc tính được phép thay đổi.
                     existingItem.Name = item.Name;
-                    // existingItem.Code = item.Code;
                     existingItem.Unit = item.Unit;
                     existingItem.SafetyStock = item.SafetyStock;
-                    // Không update CurrentStock ở đây vì tồn kho phải qua nhập/xuất
+                    // Tồn kho (CurrentStock) không được cập nhật trực tiếp tại đây.
 
                     await _context.SaveChangesAsync();
                     TempData["Success"] = $"Cập nhật thành công: {item.Name}";
@@ -143,17 +136,15 @@ namespace WMS_Demo.Controllers
                     if (!ItemExists(item.Id)) return NotFound();
                     else throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Cập nhật thất bại: {item.Name}";
-
-                    // ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
                 }
             }
             return View(item);
         }
 
-        // GET: Items/Delete/5
+        // GET: Hiển thị trang xác nhận xóa vật tư.
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -165,7 +156,7 @@ namespace WMS_Demo.Controllers
             return View(item);
         }
 
-        // POST: Items/Delete/5
+        // POST: Xử lý xóa vật tư.
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -173,13 +164,12 @@ namespace WMS_Demo.Controllers
             var item = await _context.Items.FindAsync(id);
             if (item == null)
             {
-                // item đã bị xóa bởi một request khác
+                // Trường hợp vật tư đã được xóa bởi một tiến trình khác.
                 TempData["Error"] = "Không tìm thấy vật tư để xóa. Có thể đã bị xóa trước đó.";
                 return RedirectToAction(nameof(Index));
             }
 
-            // Logic kiểm tra ràng buộc dữ liệu (Referential Integrity Check)
-
+            // Kiểm tra ràng buộc dữ liệu trước khi xóa.
             bool hasRelatedData = await _context.InboundReceiptDetails.AnyAsync(d => d.ItemId == id)
                        || await _context.OutboundReceiptDetails.AnyAsync(d => d.ItemId == id)
                        || await _context.InventoryLogs.AnyAsync(l => l.ItemId == id);

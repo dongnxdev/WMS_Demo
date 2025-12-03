@@ -35,20 +35,20 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    using (var scope = app.Services.CreateScope())
+}
+using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Thêm await vào đây vì hàm Initialize giờ là async
+        // await vì hàm Initialize trong DbInitializer là async
         await WMS_Demo.Data.DbInitializer.Initialize(services);
     }
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Lỗi sấp mặt khi seed data. Check lại đi đại ca.");
+        logger.LogError(ex, "Lỗi khi seed data");
     }
-}
 }
 app.UseStatusCodePagesWithReExecute("/Errors/{0}");
 app.UseHttpsRedirection();

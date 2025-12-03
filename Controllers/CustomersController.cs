@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace WMS_Demo.Controllers
 {
-    [Authorize] 
+    [Authorize]
     public class CustomersController : Controller
     {
         private readonly WmsDbContext _context;
@@ -23,13 +23,13 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // GET: Retrieves a list of all customers.
+        // GET: Lấy danh sách khách hàng.
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
-            // Giữ lại giá trị search để hiển thị lại trên View
+            // Lưu lại bộ lọc tìm kiếm để hiển thị trên view.
             ViewData["CurrentFilter"] = searchString;
 
-            var customers = _context.Customers.AsNoTracking(); // Tối ưu hóa: Chỉ đọc, không theo dõi thay đổi
+            var customers = _context.Customers.AsNoTracking(); // Tối ưu hiệu năng: không theo dõi thay đổi của đối tượng.
 
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -45,7 +45,7 @@ namespace WMS_Demo.Controllers
 
         }
 
-        // GET: Retrieves the details of a specific customer.
+        // GET: Lấy chi tiết thông tin một khách hàng.
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -63,14 +63,13 @@ namespace WMS_Demo.Controllers
             return View(customer);
         }
 
-        // GET: Displays the form to create a new customer.
+        // GET: Hiển thị form để tạo mới khách hàng.
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Handles the creation of a new customer.
-        // Binds the specified properties from the form to the Customer model.
+        // POST: Xử lý việc tạo mới một khách hàng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,Address,PhoneNumber")] Customer customer)
@@ -85,16 +84,15 @@ namespace WMS_Demo.Controllers
                     TempData["Success"] = $"Thêm mới thành công: {customer.Name}";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Thêm mới thất bại: {customer.Name}";
-                    // ModelState.AddModelError("", $"Lỗi hệ thống: {ex.Message}");
                 }
             }
             return View(customer);
         }
 
-        // GET: Displays the form to edit an existing customer.
+        // GET: Hiển thị form để chỉnh sửa khách hàng.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -110,8 +108,7 @@ namespace WMS_Demo.Controllers
             return View(customer);
         }
 
-        // POST: Handles the update of an existing customer.
-        // Binds the specified properties from the form to the Customer model.
+        // POST: Xử lý việc cập nhật một khách hàng.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Address,PhoneNumber")] Customer customer)
@@ -124,7 +121,7 @@ namespace WMS_Demo.Controllers
                 {
                     var existingCustomer = await _context.Customers.FindAsync(id);
                     if (existingCustomer == null) return NotFound();
-                    // Update từng trường 
+                    // Cập nhật từng thuộc tính của đối tượng.
                     existingCustomer.Name = customer.Name;
                     existingCustomer.Address = customer.Address;
                     existingCustomer.PhoneNumber = customer.PhoneNumber;
@@ -137,16 +134,15 @@ namespace WMS_Demo.Controllers
                     if (!CustomerExists(customer.Id)) return NotFound();
                     else throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Cập nhật thất bại: {customer.Name}";
-                    // ModelState.AddModelError("", $"Lỗi cập nhật: {ex.Message}");
                 }
             }
             return View(customer);
         }
 
-        // GET: Displays the confirmation page for deleting a customer.
+        // GET: Hiển thị trang xác nhận xóa khách hàng.
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -158,7 +154,7 @@ namespace WMS_Demo.Controllers
             return View(customer);
         }
 
-        // POST: Handles the deletion of a customer.
+        // POST: Xử lý xóa khách hàng.
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -166,7 +162,7 @@ namespace WMS_Demo.Controllers
             var customer = await _context.Customers.FindAsync(id);
             if (customer == null)
             {
-                // customer đã bị xóa bởi một request khác
+                // Trường hợp khách hàng đã được xóa bởi một tiến trình khác.
                 TempData["Error"] = "Không tìm thấy khách hàng để xóa. Có thể đã bị xóa trước đó.";
                 return RedirectToAction(nameof(Index));
             }

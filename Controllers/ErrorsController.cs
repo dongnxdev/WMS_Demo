@@ -4,21 +4,22 @@ namespace WMS_Demo.Controllers
 {
     public class ErrorsController : Controller
     {
-        // Route này sẽ hứng cái {0} từ Program.cs truyền sang
+        // Xử lý các lỗi HTTP được chuyển hướng từ middleware.
         [Route("Errors/{statusCode}")]
         public IActionResult HttpStatusCodeHandler(int statusCode)
         {
             switch (statusCode)
             {
                 case 404:
-                    // trả về trang index
+                    // Với lỗi 404, thông báo và chuyển hướng về trang chủ.
                     TempData["Error"] = "Chức năng bạn yêu cầu đã được xóa hoặc chuyển đổi";
                     return RedirectToAction("Index","Home");
             }
          
             ViewData["ErrorMessenger"] = "Đã xảy ra lỗi";
             ViewData["ErrorCode"] = statusCode;
-            return View("Error"); // Fallback về trang lỗi mặc định nếu không phải 404
+            // Các mã lỗi khác sẽ hiển thị trang lỗi chung.
+            return View("Error"); 
         }
     }
 }

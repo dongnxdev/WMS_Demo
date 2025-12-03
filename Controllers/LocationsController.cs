@@ -23,7 +23,7 @@ namespace WMS_Demo.Controllers
             _context = context;
         }
 
-        // GET: Lấy danh sách tất cả các vị trí.
+        // GET: Lấy danh sách vị trí.
         public async Task<IActionResult> Index(string searchString, int? pageNumber)
         {
             ViewData["CurrentFilter"] = searchString;
@@ -42,7 +42,7 @@ namespace WMS_Demo.Controllers
             return View(await PaginatedList<Location>.CreateAsync(locations, pageNumber ?? 1, DefaultPageSize));
         }
 
-        // GET: Lấy thông tin chi tiết của một vị trí cụ thể.
+        // GET: Lấy chi tiết thông tin vị trí.
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -60,13 +60,13 @@ namespace WMS_Demo.Controllers
             return View(location);
         }
 
-        // GET: Hiển thị form để tạo mới một vị trí.
+        // GET: Hiển thị form tạo mới vị trí.
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Xử lý việc tạo mới một vị trí.
+        // POST: Xử lý tạo mới vị trí.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Code,Description")] Location location)
@@ -87,7 +87,7 @@ namespace WMS_Demo.Controllers
                     TempData["Success"] = $"Thêm mới thành công: {location.Code}";
                     return RedirectToAction(nameof(Index));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Thêm mới thất bại: {location.Code}";
                 }
@@ -95,7 +95,7 @@ namespace WMS_Demo.Controllers
             return View(location);
         }
 
-        // GET: Hiển thị form để chỉnh sửa một vị trí đã có.
+        // GET: Hiển thị form chỉnh sửa vị trí.
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -111,7 +111,7 @@ namespace WMS_Demo.Controllers
             return View(location);
         }
 
-        // POST: Xử lý việc cập nhật một vị trí đã có.
+        // POST: Xử lý cập nhật vị trí.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Code,Description")] Location location)
@@ -129,7 +129,7 @@ namespace WMS_Demo.Controllers
             {
                 try
                 {
-                   
+
                     if (existingLocation == null) return NotFound();
 
                     existingLocation.Code = code;
@@ -143,7 +143,7 @@ namespace WMS_Demo.Controllers
                     if (!LocationExists(location.Id)) return NotFound();
                     else throw;
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     TempData["Error"] = $"Cập nhật thất bại: {location.Code}";
                 }
@@ -151,7 +151,7 @@ namespace WMS_Demo.Controllers
             return View(location);
         }
 
-        // GET: Hiển thị trang xác nhận xóa một vị trí.
+        // GET: Hiển thị trang xác nhận xóa vị trí.
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -163,7 +163,7 @@ namespace WMS_Demo.Controllers
             return View(location);
         }
 
-        // POST: Xử lý việc xóa một vị trí.
+        // POST: Xử lý xóa vị trí.
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
