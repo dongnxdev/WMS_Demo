@@ -78,7 +78,8 @@ Mọi logic xử lý nằm tập trung tại `WarehouseController.cs`.
 ```json
 "ConnectionStrings": {
   "DefaultConnection": "Server=YOUR_SERVER;Database=WMS_PROD;User Id=sa;Password=..."
-} 
+}
+```
 ---
 
 ## 5. Triển khai & Cài đặt (Deployment & Setup)
