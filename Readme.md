@@ -67,8 +67,7 @@ Mọi logic xử lý nằm tập trung tại `WarehouseController.cs`.
 * **Xóa Phiếu Xuất:** Hàng được hoàn trả lại vào kho.
 
 ---
-
-## 4. TRIỂN KHAI & CÀI ĐẶT (DEPLOYMENT)
+## 4. Yêu cầu và cầu hình hệ thống 
 
 ### Yêu cầu hệ thống
 * OS: Windows/Linux Server
@@ -79,4 +78,77 @@ Mọi logic xử lý nằm tập trung tại `WarehouseController.cs`.
 ```json
 "ConnectionStrings": {
   "DefaultConnection": "Server=YOUR_SERVER;Database=WMS_PROD;User Id=sa;Password=..."
-}
+} 
+---
+
+## 5. Triển khai & Cài đặt (Deployment & Setup)
+
+### 5.1. Cấu hình Webserver (IIS)
+Đảm bảo **Internet Information Services (IIS)** đã được cài đặt và kích hoạt các feature sau trong *Server Manager*:
+
+* **World Wide Web Services** > **Application Development Features**:
+    * .NET Extensibility 4.8 (hoặc cao hơn)
+    * ASP.NET 4.8
+    * ISAPI Extensions
+    * ISAPI Filters
+    * WebSocket Protocol *(Bắt buộc nếu ứng dụng sử dụng SignalR/Realtime - emit/listener)*
+
+### 5.2. Cài đặt Runtime
+* Tải và cài đặt **[.NET 8 Hosting Bundle](https://dotnet.microsoft.com/download/dotnet/8.0)** (bao gồm .NET Runtime và IIS Support).
+* *Lưu ý:* Sau khi cài đặt, nên khởi động lại IIS (lệnh `iisreset` trong CMD) để hệ thống nhận module.
+
+### 5.3. Thiết lập Cơ sở dữ liệu (SQL Server)
+**Yêu cầu:** SQL Server 2019/2022 Express & SQL Server Management Studio (SSMS).
+
+1. **Kết nối:** Mở SSMS và kết nối vào SQL Server instance.
+2. **Tạo Database:** Khởi tạo database mới cho dự án.
+3. **Cấu hình Security (Quan trọng):**
+    * Vào **Security** > **Logins** > Chuột phải chọn **New Login**.
+    * Chọn **SQL Server authentication**: Đặt *Username* và *Password* (Lưu lại để cấu hình Connection String).
+    * **User Mapping**: Map user vừa tạo với Database dự án, cấp quyền `db_owner` hoặc quyền `read/write` phù hợp.
+    * **Server Properties**: Đảm bảo server đang chạy ở chế độ **SQL Server and Windows Authentication mode** (Mixed Mode).
+
+### 5.4. Build & Publish Ứng dụng
+* Thực hiện build bản release từ máy local (Dev environment):
+    ** dotnet publish -c Release -o ./publish
+    ** Nén toàn bộ thư mục ./publish thành file .zip.
+    ** Deploy (upload) file nén lên thư mục web root trên VPS.
+    
+### 5.5. Cấu hình Ứng dụng trên IIS
+
+1. **Add Website:**
+    * Mở **IIS Manager** > Chuột phải vào **Sites** > **Add Website**.
+    * Điền *Site name*, trỏ *Physical path* tới thư mục code vừa giải nén.
+
+2. **Application Pool:**
+    * Đảm bảo App Pool của website đang chạy chế độ **No Managed Code** (đối với .NET 8/Core trở lên).
+
+3. **Cập nhật Connection String:**
+    * Mở file `appsettings.json` (hoặc `web.config` nếu có).
+    * Cập nhật chuỗi kết nối khớp với thông tin User/Pass SQL Server đã tạo ở bước 5.3.
+
+---
+
+## 6. Cấu hình Tên miền & Mạng (DNS & Networking)
+
+### 6.1. Quản trị DNS (DNS Management)
+Truy cập trang quản trị tên miền (Domain Provider) và cấu hình các bản ghi:
+
+| Loại (Type) | Tên (Name/Host) | Giá trị (Value/Target) | Mô tả |
+| :--- | :--- | :--- | :--- |
+| **A** | `@` | `[IP_Của_VPS]` | Trỏ root domain về VPS |
+| **CNAME** | `www` | `[Ten_Mien]` | Điều hướng www về root domain |
+
+### 6.2. Cấu hình Binding trên VPS
+1. Tại **IIS Manager**, chọn Site vừa tạo.
+2. Chọn **Bindings** (cột bên phải).
+3. Thêm/Sửa các binding cho port `80` (HTTP) với *Host name* là tên miền.
+
+### 6.3. Bảo mật SSL (HTTPS)
+Lựa chọn một trong các phương án sau để kích hoạt HTTPS:
+
+* **Option 1: Cloudflare (Khuyên dùng)**
+    * Bật Proxy (đám mây cam) trên Cloudflare để ẩn IP gốc và sử dụng SSL miễn phí của Cloudflare.
+* **Option 2: Win-ACME (Let's Encrypt)**
+    * Sử dụng tool **Win-ACME**.
+    * Chạy `wacs.exe` > Chọn tạo certificate cho IIS site tương ứng (Auto-renew).
